@@ -12,6 +12,7 @@ import { SetlistFormPage } from './pages/SetlistFormPage';
 import { SetlistsPage } from './pages/SetlistsPage';
 import { SetupPage } from './pages/SetupPage';
 import { StatisticsPage } from './pages/StatisticsPage';
+import { MyPage } from './pages/MyPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="festivals" element={<FestivalsPage />} />
             <Route path="festivals/:id" element={<FestivalDetailPage />} />
             <Route path="statistics" element={<StatisticsPage />} />
+            <Route path="mypage" element={<MyPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="about/setup" element={<SetupPage />} />
             <Route path="*" element={<NotFoundPage />} />

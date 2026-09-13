@@ -5,8 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#151a32" />
     <meta name="description" content="한국 공연의 선곡표를 찾고 기록하는 공연 아카이브" />
+    <meta property="og:title" content="선곡표 — 공연의 순간을 곡으로 기록하다" />
+    <meta property="og:description" content="한국 공연의 선곡표를 찾고 기록하는 공연 아카이브" />
+    <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>선곡표 — 공연의 순간을 곡으로 기록하다</title>
+    <script>
+      (() => {
+        const saved = localStorage.getItem('seongokpyo-theme');
+        const theme = saved === 'light' || saved === 'dark' ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

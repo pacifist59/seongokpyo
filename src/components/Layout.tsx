@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { DatabaseNotice } from './States';
 import { SearchBox } from './SearchBox';
 import { useAuth } from './AuthContext';
+import { useTheme } from './ThemeContext';
 
 const navItems = [
   ['/setlists', '선곡표'], ['/artists', '아티스트'], ['/venues', '공연장'], ['/festivals', '페스티벌'], ['/statistics', '통계'],
@@ -9,6 +10,7 @@ const navItems = [
 
 export function Layout() {
   const { session, signOut } = useAuth();
+  const { resolvedTheme, toggleTheme } = useTheme();
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -22,9 +24,12 @@ export function Layout() {
           </nav>
           <div className="header-actions">
             <SearchBox compact />
+            <button className="theme-toggle" onClick={toggleTheme} aria-label={`${resolvedTheme === 'dark' ? '라이트' : '다크'} 모드로 전환`} title={`${resolvedTheme === 'dark' ? '라이트' : '다크'} 모드`}>
+              <span aria-hidden="true">{resolvedTheme === 'dark' ? '☀' : '☾'}</span>
+            </button>
             <NavLink to="/setlists/new" className="button button-primary button-small">+ 등록</NavLink>
             {session ? (
-              <button className="text-button" onClick={() => void signOut()}>로그아웃</button>
+              <><NavLink className="text-button" to="/mypage">마이페이지</NavLink><button className="text-button" onClick={() => void signOut()}>로그아웃</button></>
             ) : <NavLink className="text-button" to="/login">로그인</NavLink>}
           </div>
           <details className="mobile-menu">
@@ -35,7 +40,8 @@ export function Layout() {
                 {navItems.map(([href, label]) => <NavLink key={href} to={href}>{label}<span>→</span></NavLink>)}
               </nav>
               <NavLink to="/setlists/new" className="button button-primary">선곡표 등록</NavLink>
-              {session ? <button className="button button-secondary" onClick={() => void signOut()}>로그아웃</button> : <NavLink className="button button-secondary" to="/login">로그인</NavLink>}
+              <button className="button button-secondary" onClick={toggleTheme}>{resolvedTheme === 'dark' ? '☀ 라이트 모드' : '☾ 다크 모드'}</button>
+              {session ? <><NavLink className="button button-secondary" to="/mypage">마이페이지</NavLink><button className="button button-secondary" onClick={() => void signOut()}>로그아웃</button></> : <NavLink className="button button-secondary" to="/login">로그인</NavLink>}
             </div>
           </details>
         </div>

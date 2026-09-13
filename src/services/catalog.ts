@@ -3,12 +3,14 @@ import { formatLocation, normalizeText } from '../lib/format';
 import type {
   ArtistSongStatistic,
   ArtistStatistic,
+  CommentDetail,
   FestivalStatistic,
   Json,
   SearchResult,
   SetlistOverview,
   SetlistSongDetail,
   SongInput,
+  SongCatalogItem,
   SongStatistic,
   VenueStatistic,
 } from '../types/database';
@@ -149,6 +151,7 @@ export async function searchCatalog(term: string): Promise<SearchResult[]> {
 
 function songInputsToJson(songs: SongInput[]): Json {
   return songs.map((song) => ({
+    song_id: song.song_id ?? null,
     title: song.title,
     section: song.section,
     position: song.position,
@@ -170,7 +173,22 @@ export type SetlistDraft = {
   festivalName: string | null;
   tourName: string | null;
   songs: SongInput[];
+  changeReason?: string | null;
 };
+
+async function recordActivity(setlistId: string, action: 'created' | 'edited', reason?: string | null): Promise<void> {
+  const client = requireSupabase();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return;
+  const { error } = await client.from('setlist_activity').insert({
+    setlist_id: setlistId,
+    actor_id: user.id,
+    action,
+    reason: reason?.trim() || null,
+    snapshot: {},
+  });
+  if (error) console.warn('변경 이력을 기록하지 못했습니다.', error.message);
+}
 
 export async function createSetlist(draft: SetlistDraft): Promise<string> {
   const client = requireSupabase();
@@ -188,6 +206,7 @@ export async function createSetlist(draft: SetlistDraft): Promise<string> {
   });
   assertNoError(error);
   if (!data) throw new Error('선곡표 ID를 받지 못했습니다.');
+  await recordActivity(data, 'created');
   return data;
 }
 
@@ -208,7 +227,101 @@ export async function replaceSetlist(id: string, draft: SetlistDraft): Promise<s
   });
   assertNoError(error);
   if (!data) throw new Error('선곡표 ID를 받지 못했습니다.');
+  await recordActivity(data, 'edited', draft.changeReason);
   return data;
+}
+
+export async function deleteSetlist(id: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.rpc('delete_setlist', { p_setlist_id: id });
+  assertNoError(error);
+}
+
+export async function searchSongs(term: string, artistName?: string): Promise<SongCatalogItem[]> {
+  if (!supabase || term.trim().length < 2) return [];
+  let query = supabase.from('song_catalog').select('*').ilike('title', `%${term.trim()}%`).limit(8);
+  if (artistName?.trim()) query = query.ilike('artist_name', artistName.trim());
+  const { data, error } = await query;
+  assertNoError(error);
+  return data ?? [];
+}
+
+export async function getComments(setlistId: string, page = 0, pageSize = 10): Promise<{ items: CommentDetail[]; hasMore: boolean }> {
+  if (!supabase) return { items: [], hasMore: false };
+  const from = page * pageSize;
+  const { data, error } = await supabase.from('comment_details').select('*').eq('setlist_id', setlistId).order('created_at').order('id').range(from, from + pageSize);
+  assertNoError(error);
+  const rows = data ?? [];
+  return { items: rows.slice(0, pageSize), hasMore: rows.length > pageSize };
+}
+
+export async function createComment(setlistId: string, userId: string, content: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('comments').insert({ setlist_id: setlistId, user_id: userId, content: content.trim() });
+  assertNoError(error);
+}
+
+export async function updateComment(id: string, userId: string, content: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('comments').update({ content: content.trim() }).eq('id', id).eq('user_id', userId);
+  assertNoError(error);
+}
+
+export async function deleteComment(id: string, userId: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('comments').delete().eq('id', id).eq('user_id', userId);
+  assertNoError(error);
+}
+
+export async function getBookmark(setlistId: string, userId: string): Promise<boolean> {
+  const client = requireSupabase();
+  const { data, error } = await client.from('setlist_bookmarks').select('setlist_id').eq('setlist_id', setlistId).eq('user_id', userId).maybeSingle();
+  assertNoError(error);
+  return Boolean(data);
+}
+
+export async function setBookmark(setlistId: string, userId: string, bookmarked: boolean): Promise<void> {
+  const client = requireSupabase();
+  const result = bookmarked
+    ? await client.from('setlist_bookmarks').upsert({ setlist_id: setlistId, user_id: userId }, { onConflict: 'user_id,setlist_id' })
+    : await client.from('setlist_bookmarks').delete().eq('setlist_id', setlistId).eq('user_id', userId);
+  assertNoError(result.error);
+}
+
+export async function getProfile(userId: string) {
+  const client = requireSupabase();
+  const { data, error } = await client.from('profiles').select('*').eq('id', userId).maybeSingle();
+  assertNoError(error);
+  return data;
+}
+
+export async function updateProfile(userId: string, displayName: string): Promise<void> {
+  const client = requireSupabase();
+  const clean = displayName.trim();
+  if (clean.length < 2 || clean.length > 20) throw new Error('닉네임은 2~20자로 입력해주세요.');
+  const { error } = await client.from('profiles').update({ display_name: clean }).eq('id', userId);
+  assertNoError(error);
+}
+
+export async function getMyPageData(userId: string) {
+  const client = requireSupabase();
+  const [profile, authored, attendanceIds, bookmarkIds, comments] = await Promise.all([
+    client.from('profiles').select('*').eq('id', userId).maybeSingle(),
+    client.from('setlist_overview').select('*').eq('author_id', userId).order('created_at', { ascending: false }),
+    client.from('attendances').select('setlist_id').eq('user_id', userId).order('created_at', { ascending: false }),
+    client.from('setlist_bookmarks').select('setlist_id').eq('user_id', userId).order('created_at', { ascending: false }),
+    client.from('comment_details').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+  ]);
+  [profile.error, authored.error, attendanceIds.error, bookmarkIds.error, comments.error].forEach(assertNoError);
+  const attendedSetlistIds = (attendanceIds.data ?? []).map((item) => item.setlist_id);
+  const bookmarkedSetlistIds = (bookmarkIds.data ?? []).map((item) => item.setlist_id);
+  const [attended, bookmarked] = await Promise.all([
+    attendedSetlistIds.length ? client.from('setlist_overview').select('*').in('id', attendedSetlistIds).order('performance_date', { ascending: false }) : Promise.resolve({ data: [], error: null }),
+    bookmarkedSetlistIds.length ? client.from('setlist_overview').select('*').in('id', bookmarkedSetlistIds).order('performance_date', { ascending: false }) : Promise.resolve({ data: [], error: null }),
+  ]);
+  assertNoError(attended.error);
+  assertNoError(bookmarked.error);
+  return { profile: profile.data, authored: authored.data ?? [], attended: attended.data ?? [], bookmarked: bookmarked.data ?? [], comments: comments.data ?? [] };
 }
 
 export async function getAttendance(setlistId: string, userId: string): Promise<boolean> {

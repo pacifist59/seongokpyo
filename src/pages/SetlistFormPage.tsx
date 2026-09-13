@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { ErrorState, LoadingState } from '../components/States';
+import { SongAutocomplete } from '../components/SongAutocomplete';
 import { useAsync } from '../hooks/useAsync';
 import { createSetlist, getSetlist, replaceSetlist, type SetlistDraft } from '../services/catalog';
 import type { SongInput } from '../types/database';
@@ -27,6 +28,7 @@ export function SetlistFormPage() {
   const [songs, setSongs] = useState<SongRow[]>([newSong(1)]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [changeReason, setChangeReason] = useState('');
 
   useEffect(() => {
     if (!existing.data) return;
@@ -41,7 +43,7 @@ export function SetlistFormPage() {
       addressDetail: '', festivalName: overview.festival_name ?? '', tourName: overview.tour_name ?? '',
     });
     setSongs(currentSongs.length ? currentSongs.map((song) => ({
-      key: song.id, title: song.title, position: song.position, section: song.section, is_cover: song.is_cover,
+      key: song.id, song_id: song.song_id, title: song.title, position: song.position, section: song.section, is_cover: song.is_cover,
       original_artist: song.original_artist_name ?? '', guest_artist: song.guest_artist ?? '', note: song.note ?? '',
     })) : [newSong(1)]);
   }, [existing.data]);
@@ -61,10 +63,6 @@ export function SetlistFormPage() {
     setSongs((current) => { const copy = [...current]; [copy[index], copy[target]] = [copy[target], copy[index]]; return copy; });
   };
   const removeSong = (key: string) => setSongs((current) => current.length === 1 ? [newSong(1)] : current.filter((song) => song.key !== key));
-  const handleSongKey = (event: KeyboardEvent<HTMLInputElement>, index: number, section: SongInput['section']) => {
-    if (event.key === 'Enter') { event.preventDefault(); insertSong(index, section); }
-  };
-
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError('');
     const cleanSongs = normalizedSongs.filter((song) => song.title.trim()).map(({ key: _key, ...song }) => ({ ...song, title: song.title.trim() }));
@@ -82,6 +80,7 @@ export function SetlistFormPage() {
         festivalName: fields.festivalName?.trim() || null,
         tourName: fields.tourName?.trim() || null,
         songs: cleanSongs,
+        changeReason: changeReason.trim() || null,
       };
       const setlistId = editing && id ? await replaceSetlist(id, draft) : await createSetlist(draft);
       navigate(`/setlist/${setlistId}`);
@@ -116,12 +115,13 @@ export function SetlistFormPage() {
       <section className="form-section song-form-section"><div className="form-section-number">03</div><div className="form-section-content"><div className="form-section-title song-title-row"><div><h2>연주 순서</h2><p>곡명 입력 후 Enter를 누르면 다음 줄이 생깁니다.</p></div><button type="button" className="button button-secondary button-small" onClick={() => insertSong(songs.length - 1, 'main')}>+ 곡 추가</button></div><div className="song-editor">
         {normalizedSongs.map((song, index) => <div className={`song-editor-row ${song.section === 'encore' ? 'encore-row' : ''}`} key={song.key}>
           <span className="editor-number">{String(index + 1).padStart(2, '0')}</span>
-          <div className="song-input-stack"><input id={`song-${song.key}`} value={song.title} onChange={(event) => updateSong(song.key, { title: event.target.value })} onKeyDown={(event) => handleSongKey(event, index, song.section)} placeholder="곡명" aria-label={`${index + 1}번째 곡명`} /><div className="song-flags"><button type="button" className={song.section === 'encore' ? 'active' : ''} onClick={() => updateSong(song.key, { section: song.section === 'encore' ? 'main' : 'encore' })}>{song.section === 'encore' ? 'Encore' : '앙코르로 지정'}</button><label><input type="checkbox" checked={song.is_cover} onChange={(event) => updateSong(song.key, { is_cover: event.target.checked })} />커버곡</label></div>
+          <div className="song-input-stack"><SongAutocomplete inputId={`song-${song.key}`} label={`${index + 1}번째 곡명`} value={song.title} artistName={fields.artistName} onChange={(title) => updateSong(song.key, { title, song_id: null })} onSelect={(item) => updateSong(song.key, { title: item.title, song_id: item.id })} onEnter={() => insertSong(index, song.section)} /><div className="song-flags"><button type="button" className={song.section === 'encore' ? 'active' : ''} onClick={() => updateSong(song.key, { section: song.section === 'encore' ? 'main' : 'encore' })}>{song.section === 'encore' ? 'Encore' : '앙코르로 지정'}</button><label><input type="checkbox" checked={song.is_cover} onChange={(event) => updateSong(song.key, { is_cover: event.target.checked })} />커버곡</label></div>
             <details className="song-meta"><summary>곡 메타데이터</summary><div><input value={song.original_artist ?? ''} onChange={(event) => updateSong(song.key, { original_artist: event.target.value })} placeholder="원곡 아티스트" /><input value={song.guest_artist ?? ''} onChange={(event) => updateSong(song.key, { guest_artist: event.target.value })} placeholder="게스트 아티스트" /><input value={song.note ?? ''} onChange={(event) => updateSong(song.key, { note: event.target.value })} placeholder="메모" /></div></details>
           </div>
           <div className="song-row-actions"><button type="button" disabled={index === 0} onClick={() => moveSong(index, -1)} aria-label={`${song.title || index + 1} 위로 이동`}>↑</button><button type="button" disabled={index === songs.length - 1} onClick={() => moveSong(index, 1)} aria-label={`${song.title || index + 1} 아래로 이동`}>↓</button><button type="button" onClick={() => removeSong(song.key)} aria-label={`${song.title || index + 1} 삭제`}>×</button></div>
         </div>)}
       </div></div></section>
+      {editing && <section className="form-section"><div className="form-section-number">04</div><div className="form-section-content"><div className="form-section-title"><h2>수정 사유</h2><p>변경 이력에 선택적으로 남습니다.</p></div><div className="form-grid"><label className="span-2"><span>수정 사유</span><input maxLength={300} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="예: 앙코르 순서 정정" /></label></div></div></section>}
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="form-submit"><p>등록 후에도 작성자는 언제든 수정할 수 있습니다.</p><button className="button button-primary" disabled={submitting}>{submitting ? '저장하는 중…' : editing ? '수정 완료' : '선곡표 등록'}</button></div>
     </form>

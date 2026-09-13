@@ -18,6 +18,7 @@ type Table<Row, Insert = Partial<Row>, Update = Partial<Insert>> = {
 type View<Row> = { Row: Row; Relationships: Relationship[] };
 
 export type SongInput = {
+  song_id?: string | null;
   title: string;
   section: 'main' | 'encore';
   position: number;
@@ -48,14 +49,44 @@ export type SetlistOverview = {
 export type SetlistSongDetail = {
   id: string;
   setlist_id: string;
-  song_id: string;
+  song_id: string | null;
   title: string;
+  custom_title: string | null;
   section: 'main' | 'encore';
   position: number;
   is_cover: boolean;
   original_artist_name: string | null;
   guest_artist: string | null;
   note: string | null;
+  album_name: string | null;
+  album_image_url: string | null;
+  release_date: string | null;
+  external_track_id: string | null;
+  spotify_url: string | null;
+};
+
+export type CommentDetail = {
+  id: string;
+  setlist_id: string;
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  content: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SongCatalogItem = {
+  id: string;
+  artist_id: string;
+  artist_name: string;
+  title: string;
+  album_id: string | null;
+  album_name: string | null;
+  album_image_url: string | null;
+  release_date: string | null;
+  external_track_id: string | null;
+  spotify_url: string | null;
 };
 
 export type ArtistStatistic = {
@@ -65,6 +96,11 @@ export type ArtistStatistic = {
   concert_count: number;
   setlist_count: number;
   latest_performance_date: string | null;
+  image_url: string | null;
+  bio: string | null;
+  activity_type: string | null;
+  country_code: string | null;
+  spotify_url: string | null;
 };
 
 export type VenueStatistic = {
@@ -76,6 +112,10 @@ export type VenueStatistic = {
   concert_count: number;
   artist_count: number;
   latest_performance_date: string | null;
+  road_address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  naver_place_url: string | null;
 };
 
 export type FestivalStatistic = {
@@ -106,10 +146,10 @@ export interface Database {
   public: {
     Tables: {
       artists: Table<{
-        id: string; name: string; sort_name: string; created_at: string; updated_at: string;
+        id: string; name: string; sort_name: string; image_url: string | null; bio: string | null; activity_type: string | null; country_code: string | null; spotify_url: string | null; created_at: string; updated_at: string;
       }>;
       venues: Table<{
-        id: string; name: string; province: string | null; district: string | null; address_detail: string | null; created_at: string; updated_at: string;
+        id: string; name: string; province: string | null; district: string | null; address_detail: string | null; road_address: string | null; latitude: number | null; longitude: number | null; naver_place_url: string | null; created_at: string; updated_at: string;
       }>;
       festivals: Table<{
         id: string; name: string; start_date: string | null; end_date: string | null; venue_id: string | null; created_at: string; updated_at: string;
@@ -120,6 +160,15 @@ export interface Database {
       attendances: Table<{
         user_id: string; setlist_id: string; created_at: string;
       }, { user_id?: string; setlist_id: string; created_at?: string }>;
+      comments: Table<{
+        id: string; setlist_id: string; user_id: string; content: string; created_at: string; updated_at: string;
+      }, { id?: string; setlist_id: string; user_id: string; content: string; created_at?: string; updated_at?: string }>;
+      setlist_bookmarks: Table<{
+        user_id: string; setlist_id: string; created_at: string;
+      }, { user_id: string; setlist_id: string; created_at?: string }>;
+      setlist_activity: Table<{
+        id: number; setlist_id: string | null; actor_id: string | null; action: 'created' | 'edited' | 'deleted'; reason: string | null; snapshot: Json; created_at: string;
+      }, { id?: number; setlist_id?: string | null; actor_id: string; action: 'created' | 'edited'; reason?: string | null; snapshot?: Json; created_at?: string }>;
     };
     Views: {
       setlist_overview: View<SetlistOverview>;
@@ -129,6 +178,8 @@ export interface Database {
       festival_statistics: View<FestivalStatistic>;
       song_statistics: View<SongStatistic>;
       artist_song_statistics: View<ArtistSongStatistic>;
+      comment_details: View<CommentDetail>;
+      song_catalog: View<SongCatalogItem>;
     };
     Functions: {
       create_setlist: {
@@ -161,6 +212,10 @@ export interface Database {
           p_songs: Json;
         };
         Returns: string;
+      };
+      delete_setlist: {
+        Args: { p_setlist_id: string };
+        Returns: boolean;
       };
     };
     Enums: Record<string, never>;
