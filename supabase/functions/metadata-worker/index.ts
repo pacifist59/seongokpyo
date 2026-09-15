@@ -16,19 +16,19 @@ function venueAddress(venue: Venue) {
 }
 
 async function geocode(address: string) {
-  const response = await fetch(`https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query=${encodeURIComponent(address)}`, {
+  const response = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}&analyze_type=similar&size=1`, {
     headers: {
-      'x-ncp-apigw-api-key-id': required('NAVER_GEOCODING_CLIENT_ID'),
-      'x-ncp-apigw-api-key': required('NAVER_GEOCODING_CLIENT_SECRET'),
+      Authorization: `KakaoAK ${required('KAKAO_REST_API_KEY')}`,
     },
   });
-  if (!response.ok) throw new Error(`Naver geocoding returned ${response.status}.`);
-  const data = await response.json() as { addresses?: Array<{ x: string; y: string }> };
-  const result = data.addresses?.[0];
+  if (response.status === 429) throw new Error('Kakao Local API quota was exceeded.');
+  if (!response.ok) throw new Error(`Kakao Local API returned ${response.status}.`);
+  const data = await response.json() as { documents?: Array<{ x: string; y: string }> };
+  const result = data.documents?.[0];
   if (!result) return null;
   const longitude = Number(result.x);
   const latitude = Number(result.y);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error('Naver returned invalid coordinates.');
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error('Kakao returned invalid coordinates.');
   return { latitude, longitude };
 }
 
@@ -40,8 +40,10 @@ Deno.serve(async (request) => {
     const url = required('SUPABASE_URL');
     const serviceKey = required('SUPABASE_SERVICE_ROLE_KEY');
     const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
-    const requestedLimit = Number(new URL(request.url).searchParams.get('limit') || 20);
-    const limit = Number.isInteger(requestedLimit) ? Math.max(1, Math.min(requestedLimit, 100)) : 20;
+    // One address lookup per queued venue. Keep each invocation small so a free
+    // quota is used predictably; run it on a modest schedule, not per page view.
+    const requestedLimit = Number(new URL(request.url).searchParams.get('limit') || 10);
+    const limit = Number.isInteger(requestedLimit) ? Math.max(1, Math.min(requestedLimit, 25)) : 10;
     const { data: jobs, error } = await supabase.rpc('claim_metadata_jobs', { p_job_type: 'geocode', p_limit: limit });
     if (error) throw error;
 
@@ -55,6 +57,13 @@ Deno.serve(async (request) => {
       }
       const address = venueAddress(venue);
       try {
+        const hasValidCoordinates = (candidate: unknown): candidate is number => typeof candidate === 'number' && Number.isFinite(candidate);
+        const { data: currentVenue } = await supabase.from('venues').select('latitude,longitude').eq('id', venue.id).maybeSingle<{ latitude: number | null; longitude: number | null }>();
+        if (hasValidCoordinates(currentVenue?.latitude) && currentVenue.latitude >= -90 && currentVenue.latitude <= 90 && hasValidCoordinates(currentVenue?.longitude) && currentVenue.longitude >= -180 && currentVenue.longitude <= 180) {
+          await supabase.from('metadata_jobs').update({ status: 'skipped', last_error: 'A valid coordinate is already stored.', completed_at: new Date().toISOString() }).eq('id', job.id);
+          results.push({ id: job.id, status: 'already_geocoded' });
+          continue;
+        }
         if (!address) throw new Error('No usable venue address.');
         const point = await geocode(address);
         if (!point) {
@@ -64,7 +73,7 @@ Deno.serve(async (request) => {
           continue;
         }
         const completedAt = new Date().toISOString();
-        await supabase.from('venues').update({ ...point, geocode_status: 'complete', geocode_source: 'naver-geocode-v2', geocode_error: null, geocoded_at: completedAt }).eq('id', venue.id);
+        await supabase.from('venues').update({ ...point, geocode_status: 'complete', geocode_source: 'kakao-local-address-v2', geocode_error: null, geocoded_at: completedAt }).eq('id', venue.id);
         await supabase.from('metadata_jobs').update({ status: 'complete', last_error: null, completed_at: completedAt }).eq('id', job.id);
         results.push({ id: job.id, status: 'complete' });
       } catch (reason) {

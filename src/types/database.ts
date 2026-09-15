@@ -118,7 +118,6 @@ export type VenueStatistic = {
   road_address: string | null;
   latitude: number | null;
   longitude: number | null;
-  naver_place_url: string | null;
   geocode_status: 'pending' | 'complete' | 'failed' | 'not_available';
   geocode_source: string | null;
   geocoded_at: string | null;
@@ -155,7 +154,7 @@ export interface Database {
         id: string; name: string; sort_name: string; image_url: string | null; bio: string | null; activity_type: string | null; country_code: string | null; spotify_url: string | null; metadata_status: 'pending' | 'complete' | 'failed' | 'not_available'; metadata_source: string | null; metadata_updated_at: string | null; metadata_error: string | null; created_at: string; updated_at: string;
       }>;
       venues: Table<{
-        id: string; name: string; province: string | null; district: string | null; address_detail: string | null; road_address: string | null; latitude: number | null; longitude: number | null; naver_place_url: string | null; geocode_status: 'pending' | 'complete' | 'failed' | 'not_available'; geocode_source: string | null; geocoded_at: string | null; geocode_error: string | null; created_at: string; updated_at: string;
+        id: string; name: string; province: string | null; district: string | null; address_detail: string | null; road_address: string | null; latitude: number | null; longitude: number | null; geocode_status: 'pending' | 'complete' | 'failed' | 'not_available'; geocode_source: string | null; geocoded_at: string | null; geocode_error: string | null; created_at: string; updated_at: string;
       }>;
       festivals: Table<{
         id: string; name: string; start_date: string | null; end_date: string | null; venue_id: string | null; created_at: string; updated_at: string;
