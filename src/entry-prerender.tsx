@@ -34,7 +34,7 @@ export async function* collectPages(): AsyncGenerator<Page> {
     getArtists(), getVenues(), getFestivals(), getSetlists(), getRecentlyAdded(6), getStatistics(),
   ]);
   const staticData: Record<string, InitialData> = {
-    '/': { 'home-recent': recent, 'home-summary': { artists: artists.length, venues: venues.length, concerts: artists.reduce((sum, artist) => sum + artist.concert_count, 0) } },
+    '/': { 'home-recent': recent, 'home-discovery': statistics, 'home-summary': { artists: artists.length, venues: venues.length, concerts: artists.reduce((sum, artist) => sum + artist.concert_count, 0) } },
     '/setlists': { setlists }, '/artists': { artists }, '/venues': { venues }, '/festivals': { festivals }, '/statistics': { statistics },
   };
   for (const [path, metadata] of Object.entries(staticMetadata)) yield { path, metadata, data: staticData[path] || {} };

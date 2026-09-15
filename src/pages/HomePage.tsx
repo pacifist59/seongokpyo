@@ -3,7 +3,7 @@ import { SearchBox } from '../components/SearchBox';
 import { SetlistCard } from '../components/SetlistCard';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import { useAsync } from '../hooks/useAsync';
-import { getArtists, getRecentlyAdded, getVenues } from '../services/catalog';
+import { getArtists, getRecentlyAdded, getStatistics, getVenues } from '../services/catalog';
 
 export function HomePage() {
   const recentState = useAsync(() => getRecentlyAdded(6), [], 'home-recent');
@@ -15,6 +15,7 @@ export function HomePage() {
       concerts: artists.reduce((sum, artist) => sum + artist.concert_count, 0),
     };
   }, [], 'home-summary');
+  const discoveryState = useAsync(getStatistics, [], 'home-discovery');
 
   return (
     <>
@@ -50,8 +51,16 @@ export function HomePage() {
         ) : recentState.data?.length ? (
           <div className="setlist-grid">{recentState.data.map((item) => <SetlistCard key={item.id} item={item} />)}</div>
         ) : (
-          <EmptyState title="첫 선곡표를 기다리고 있어요" description="아직 공개된 공연 기록이 없습니다. 기억 속 첫 공연을 남겨보세요." action={<Link to="/setlists/new" className="button button-primary">첫 선곡표 등록</Link>} />
+          <div className="home-empty"><EmptyState title="첫 기록이 이 아카이브의 시작이 됩니다" description="공연명만 또렷하지 않아도 괜찮아요. 기억나는 곡, 공연장, 날짜부터 함께 남길 수 있어요." action={<Link to="/setlists/new" className="button button-primary">첫 선곡표 등록</Link>} /><div className="home-empty-points"><span>아티스트별로 모여요</span><span>공연장 기록도 함께 쌓여요</span><span>수정 이력으로 신뢰를 남겨요</span></div></div>
         )}
+      </section>
+
+      <section className="section discovery-section">
+        <div className="section-heading"><div><p className="eyebrow">Explore the archive</p><h2>기록에서 발견하는 공연</h2></div><Link to="/statistics" className="underlined-link">기록 통계 보기</Link></div>
+        {discoveryState.loading ? <LoadingState label="추천 기록을 고르는 중" /> : discoveryState.error ? <ErrorState error={discoveryState.error} onRetry={discoveryState.reload} /> : discoveryState.data?.artists.length || discoveryState.data?.venues.length ? <div className="discovery-grid">
+          <div className="discovery-panel"><p className="eyebrow">Most recorded artist</p>{discoveryState.data?.artists[0] ? <Link to={`/artists/${discoveryState.data.artists[0].id}`}><strong>{discoveryState.data.artists[0].name}</strong><span>공연 {discoveryState.data.artists[0].concert_count}회 · 선곡표 {discoveryState.data.artists[0].setlist_count}개</span><i aria-hidden="true">↗</i></Link> : <p>기록이 쌓이면 자주 만나는 아티스트를 보여드려요.</p>}</div>
+          <div className="discovery-panel"><p className="eyebrow">Most visited venue</p>{discoveryState.data?.venues[0] ? <Link to={`/venues/${discoveryState.data.venues[0].id}`}><strong>{discoveryState.data.venues[0].name}</strong><span>{[discoveryState.data.venues[0].province, discoveryState.data.venues[0].district].filter(Boolean).join(' · ') || '공연장 위치 확인'} · 공연 {discoveryState.data.venues[0].concert_count}회</span><i aria-hidden="true">↗</i></Link> : <p>공연장이 등록되면 공연별 기록을 한곳에서 볼 수 있어요.</p>}</div>
+        </div> : <div className="discovery-welcome"><span aria-hidden="true">✦</span><div><strong>공연을 등록하면 아티스트·공연장·곡의 연결이 함께 만들어집니다.</strong><p>한 개의 기록도 다음 관객이 공연을 찾는 데 도움이 됩니다.</p></div><Link to="/setlists/new" className="button button-secondary">기록 시작하기</Link></div>}
       </section>
 
       <section className="home-guide">
