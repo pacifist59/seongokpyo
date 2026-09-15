@@ -63,7 +63,11 @@ where nullif(trim(concat_ws(' ', road_address, province, district, address_detai
 on conflict (entity_type, entity_id, job_type) do update
   set status = 'pending', last_error = null, locked_at = null, completed_at = null;
 
-create or replace view public.venue_statistics with (security_invoker = true) as
+-- CREATE OR REPLACE cannot remove an output column from a view. Recreate it
+-- with the provider-neutral shape before removing the legacy field.
+drop view if exists public.venue_statistics;
+
+create view public.venue_statistics with (security_invoker = true) as
 select
   v.id, v.name::text as name, v.province, v.district, v.address_detail,
   count(distinct c.id)::integer as concert_count, count(distinct c.artist_id)::integer as artist_count,
