@@ -1,8 +1,6 @@
 -- Kakao Local REST API replaces the former provider. Stored coordinates are
 -- WGS84 latitude/longitude and remain provider-neutral.
 
-alter table public.venues drop column if exists naver_place_url;
-
 create or replace function private.queue_enrichment_job()
 returns trigger
 language plpgsql
@@ -75,3 +73,6 @@ select
 from public.venues v
 left join public.concerts c on c.venue_id = v.id
 group by v.id;
+
+-- Replace the view before removing its former provider-specific column.
+alter table public.venues drop column if exists naver_place_url;
