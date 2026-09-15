@@ -17,17 +17,16 @@
 
    - `METADATA_WORKER_TOKEN`: 무작위 긴 작업 전용 토큰
    - `KAKAO_REST_API_KEY`: 카카오 Local REST API용 REST API 키
-   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`: Edge Function의 서버 전용 값
+   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`: Supabase가 함수에 기본 제공하는 서버 전용 값이며, 별도 입력하지 않습니다.
 
 5. 좌표가 있는 공연장의 실제 지도 미리보기를 원하면 카카오 JavaScript 키에 운영 도메인을 등록하고 Cloudflare Pages에 `VITE_KAKAO_MAP_JAVASCRIPT_KEY`를 설정합니다. 이 키는 도메인 제한이 전제인 지도 SDK용 공개 키이며 REST API 키와 다릅니다.
-6. `supabase functions deploy metadata-worker`로 함수를 배포합니다. 외부 스케줄러 또는 Supabase Cron에서 다음처럼 실행합니다. 한 번에 최대 25건이며 기본값은 10건입니다. 사용자 브라우저나 공개 페이지에서 호출하지 않습니다.
+6. `supabase functions deploy metadata-worker`로 함수를 배포합니다. 이 워커는 Supabase JWT 대신 `METADATA_WORKER_TOKEN`으로 보호됩니다. 외부 스케줄러 또는 Supabase Cron에서 다음처럼 실행합니다. 한 번에 최대 25건이며 기본값은 10건입니다. 사용자 브라우저나 공개 페이지에서 호출하지 않습니다.
 
    ```sh
    curl -X POST "https://YOUR_PROJECT.supabase.co/functions/v1/metadata-worker?limit=25" \
-     -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
      -H "x-metadata-worker-token: $METADATA_WORKER_TOKEN"
    ```
 
-7. `metadata_jobs`에서 `failed` 작업의 `last_error`를 확인한 뒤 주소를 고치고, 해당 행의 상태를 `pending`으로 되돌려 재시도합니다. 쿼터 오류는 당일 자동 반복하지 말고 카카오 개발자 콘솔의 사용량을 확인한 뒤 다음 실행 시 다시 시도합니다.
+7. `metadata_jobs`에서 `failed` 작업의 `last_error`를 확인합니다. 주소를 수정하면 트리거가 새 `pending` 작업을 만들므로 수동으로 반복 호출하지 않아도 됩니다. 쿼터 오류는 당일 자동 반복하지 말고 카카오 개발자 콘솔의 사용량을 확인한 뒤 다음 실행 시 다시 시도합니다.
 
 현재 Edge Function은 검증 가능한 공연장 지오코딩만 구현합니다. `metadata` 작업은 Spotify 등 공급자 선정과 사용 조건 확정 후 별도 서버 전용 수집기로 처리합니다. 이 경계 덕분에 API 키나 공급자 토큰이 번들에 섞이지 않습니다.
