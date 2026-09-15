@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import { Layout } from './components/Layout';
 import { ArtistDetailPage, FestivalDetailPage, VenueDetailPage } from './pages/DetailDirectoryPages';
@@ -23,11 +23,12 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
   return (
-    <BrowserRouter>
+    <>
       <AuthProvider>
         <ScrollToTop />
-        <Routes>
+        <Routes key={pathname}>
           <Route element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="setlists" element={<SetlistsPage />} />
@@ -48,6 +49,6 @@ export default function App() {
           </Route>
         </Routes>
       </AuthProvider>
-    </BrowserRouter>
+    </>
   );
 }

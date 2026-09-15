@@ -7,7 +7,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import { useToast } from '../components/ToastContext';
 import { useAsync } from '../hooks/useAsync';
 import { useDocumentMetadata } from '../hooks/useDocumentMetadata';
-import { formatDate, pluralizeSongs } from '../lib/format';
+import { formatDate, formatOptionalSetlistContext, formatSetlistContext, pluralizeSongs } from '../lib/format';
 import { deleteSetlist, getAttendance, getBookmark, getSetlist, setAttendance, setBookmark } from '../services/catalog';
 import type { SetlistSongDetail } from '../types/database';
 
@@ -16,7 +16,7 @@ export function SetlistDetailPage() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { showToast } = useToast();
-  const state = useAsync(() => getSetlist(id), [id]);
+  const state = useAsync(() => getSetlist(id), [id], `setlist:${id}`);
   const [attending, setAttendingState] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [interactionLoading, setInteractionLoading] = useState(false);
@@ -43,6 +43,9 @@ export function SetlistDetailPage() {
   const mainSongs = songs.filter((song) => song.section === 'main');
   const encoreSongs = songs.filter((song) => song.section === 'encore');
   const canEdit = session?.user.id === item.author_id;
+  const concertContext = formatSetlistContext(item.artist_name, item.concert_title, item.tour_name);
+  const tourName = formatOptionalSetlistContext(item.artist_name, item.tour_name);
+  const festivalName = formatOptionalSetlistContext(item.artist_name, item.festival_name);
 
   const toggleAttendance = async () => {
     if (!session) { navigate(`/login?next=${encodeURIComponent(`/setlist/${id}`)}`); return; }
@@ -78,8 +81,8 @@ export function SetlistDetailPage() {
   return <section className="detail-page">
     <div className="detail-masthead">
       <div className="detail-topline"><Link to="/setlists">← 선곡표</Link><span>{item.festival_name ? 'FESTIVAL SET' : 'LIVE SET'}</span></div>
-      <div className="detail-title-row"><div><p>{formatDate(item.performance_date)}</p><h1>{item.artist_name}</h1><h2>{item.concert_title || item.tour_name || '공연 선곡표'}</h2></div><div className="detail-count"><strong>{String(songs.length).padStart(2, '0')}</strong><span>SONGS</span></div></div>
-      <div className="detail-meta"><div><small>공연장</small><strong>{item.venue_name || '미정'}</strong><span>{item.region || '지역 미정'}</span></div><div><small>투어</small><strong>{item.tour_name || '—'}</strong></div><div><small>페스티벌</small><strong>{item.festival_name || '—'}</strong></div></div>
+      <div className="detail-title-row"><div><p>{formatDate(item.performance_date)}</p><h1>{item.artist_name}</h1><h2>{concertContext}</h2></div><div className="detail-count"><strong>{String(songs.length).padStart(2, '0')}</strong><span>SONGS</span></div></div>
+      <div className="detail-meta"><div><small>공연장</small><strong>{item.venue_name || '미정'}</strong><span>{item.region || '지역 미정'}</span></div><div><small>투어</small><strong>{tourName || '—'}</strong></div><div><small>페스티벌</small><strong>{festivalName || '—'}</strong></div></div>
     </div>
 
     <div className="detail-content section">

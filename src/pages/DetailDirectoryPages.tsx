@@ -21,7 +21,7 @@ function RecordList({ items }: { items: SetlistOverview[] }) {
 
 export function ArtistDetailPage() {
   const { id = '' } = useParams();
-  const state = useAsync(() => getArtist(id), [id]);
+  const state = useAsync(() => getArtist(id), [id], `artist:${id}`);
   useDocumentMetadata(state.data ? `${state.data.artist.name} 공연 기록 | 선곡표` : '아티스트 | 선곡표', state.data?.artist.bio || '아티스트의 최근 공연과 자주 연주한 곡을 확인하세요.', state.data?.artist.image_url);
   const stop = <DetailState loading={state.loading} error={state.error} missing={!state.loading && !state.error && !state.data} />;
   if (!state.data) return stop;
@@ -44,7 +44,7 @@ export function ArtistDetailPage() {
 
 export function VenueDetailPage() {
   const { id = '' } = useParams();
-  const state = useAsync(() => getVenue(id), [id]);
+  const state = useAsync(() => getVenue(id), [id], `venue:${id}`);
   useDocumentMetadata(state.data ? `${state.data.venue.name} 공연장 | 선곡표` : '공연장 | 선곡표', state.data ? `${state.data.venue.name}의 공연 기록과 지도 정보를 확인하세요.` : '공연장 공연 기록');
   const stop = <DetailState loading={state.loading} error={state.error} missing={!state.loading && !state.error && !state.data} />;
   if (!state.data) return stop;
@@ -59,7 +59,8 @@ export function VenueDetailPage() {
 
 export function FestivalDetailPage() {
   const { id = '' } = useParams();
-  const state = useAsync(() => getFestival(id), [id]);
+  const state = useAsync(() => getFestival(id), [id], `festival:${id}`);
+  useDocumentMetadata(state.data ? `${state.data.festival.name} 페스티벌 | 선곡표` : '페스티벌 | 선곡표', state.data ? `${state.data.festival.name}의 날짜별 공연과 아티스트별 선곡표를 확인하세요.` : '페스티벌 공연 기록');
   const stop = <DetailState loading={state.loading} error={state.error} missing={!state.loading && !state.error && !state.data} />;
   if (!state.data) return stop;
   const { festival, setlists } = state.data;

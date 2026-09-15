@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { formatCompactDate, pluralizeSongs } from '../lib/format';
+import { formatCompactDate, formatSetlistContext, pluralizeSongs } from '../lib/format';
 import type { SetlistOverview } from '../types/database';
 
 export function SetlistCard({ item, compact = false }: { item: SetlistOverview; compact?: boolean }) {
@@ -15,7 +15,7 @@ export function SetlistCard({ item, compact = false }: { item: SetlistOverview; 
           <span>{pluralizeSongs(item.song_count)}</span>
         </div>
         <h3>{item.artist_name}</h3>
-        <p>{item.concert_title || item.tour_name || '공연 선곡표'}</p>
+        <p>{formatSetlistContext(item.artist_name, item.concert_title, item.tour_name)}</p>
         <div className="card-location">
           <span>{item.venue_name || '공연장 미정'}</span>
           <small>{item.region || '지역 미정'}</small>

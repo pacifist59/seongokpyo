@@ -3,12 +3,14 @@ import { DatabaseNotice } from './States';
 import { SearchBox } from './SearchBox';
 import { useAuth } from './AuthContext';
 import { useTheme } from './ThemeContext';
+import { useDefaultDocumentMetadata } from '../hooks/useDocumentMetadata';
 
 const navItems = [
   ['/setlists', '선곡표'], ['/artists', '아티스트'], ['/venues', '공연장'], ['/festivals', '페스티벌'], ['/statistics', '통계'],
 ] as const;
 
 export function Layout() {
+  useDefaultDocumentMetadata();
   const { session, signOut } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
   return (

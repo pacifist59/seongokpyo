@@ -10,7 +10,7 @@ import { getSetlists } from '../services/catalog';
 const PAGE_SIZE = 12;
 
 export function SetlistsPage() {
-  const state = useAsync(() => getSetlists(), []);
+  const state = useAsync(() => getSetlists(), [], 'setlists');
   const [artist, setArtist] = useState('');
   const [venue, setVenue] = useState('');
   const [region, setRegion] = useState('');

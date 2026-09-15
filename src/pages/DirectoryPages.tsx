@@ -11,7 +11,7 @@ function DirectorySearch({ value, onChange, placeholder }: { value: string; onCh
 }
 
 export function ArtistsPage() {
-  const state = useAsync(getArtists, []);
+  const state = useAsync(getArtists, [], 'artists');
   const [query, setQuery] = useState('');
   const items = useMemo(() => (state.data ?? []).filter((item) => normalizeText(item.name).includes(normalizeText(query))), [state.data, query]);
   return (
@@ -25,7 +25,7 @@ export function ArtistsPage() {
 }
 
 export function VenuesPage() {
-  const state = useAsync(getVenues, []);
+  const state = useAsync(getVenues, [], 'venues');
   const [query, setQuery] = useState('');
   const items = useMemo(() => (state.data ?? []).filter((item) => normalizeText(`${item.name} ${item.province ?? ''} ${item.district ?? ''}`).includes(normalizeText(query))), [state.data, query]);
   return (
@@ -39,7 +39,7 @@ export function VenuesPage() {
 }
 
 export function FestivalsPage() {
-  const state = useAsync(getFestivals, []);
+  const state = useAsync(getFestivals, [], 'festivals');
   return (
     <section className="section page-section">
       <PageHeader eyebrow="Festival archive" title="페스티벌" description="여러 날짜와 아티스트가 함께하는 페스티벌 기록을 모았습니다." />

@@ -5,7 +5,7 @@ import { formatCompactDate } from '../lib/format';
 import { getStatistics } from '../services/catalog';
 
 export function StatisticsPage() {
-  const state = useAsync(getStatistics, []);
+  const state = useAsync(getStatistics, [], 'statistics');
   if (state.loading) return <section className="section page-section"><LoadingState label="통계를 집계하는 중" /></section>;
   if (state.error) return <section className="section page-section"><ErrorState error={state.error} onRetry={state.reload} /></section>;
   const data = state.data;

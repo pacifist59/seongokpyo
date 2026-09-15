@@ -6,11 +6,13 @@ type ThemeValue = { theme: Theme; resolvedTheme: 'light' | 'dark'; setTheme: (th
 const ThemeContext = createContext<ThemeValue | null>(null);
 
 function systemTheme(): 'light' | 'dark' {
+  if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'system';
     const saved = localStorage.getItem('seongokpyo-theme');
     return saved === 'light' || saved === 'dark' ? saved : 'system';
   });

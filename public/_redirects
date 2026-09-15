@@ -1,1 +1,2 @@
-/* /index.html 200
+# Explicit member-only SPA routes. Public pages and robots/sitemap are real files.
+/setlist/:id/edit /setlists/new.html 200

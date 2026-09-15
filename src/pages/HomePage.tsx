@@ -6,7 +6,7 @@ import { useAsync } from '../hooks/useAsync';
 import { getArtists, getRecentlyAdded, getVenues } from '../services/catalog';
 
 export function HomePage() {
-  const recentState = useAsync(() => getRecentlyAdded(6), []);
+  const recentState = useAsync(() => getRecentlyAdded(6), [], 'home-recent');
   const summaryState = useAsync(async () => {
     const [artists, venues] = await Promise.all([getArtists(), getVenues()]);
     return {
@@ -14,7 +14,7 @@ export function HomePage() {
       venues: venues.length,
       concerts: artists.reduce((sum, artist) => sum + artist.concert_count, 0),
     };
-  }, []);
+  }, [], 'home-summary');
 
   return (
     <>

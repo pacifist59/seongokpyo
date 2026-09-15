@@ -16,8 +16,9 @@ export function ErrorState({ error, onRetry }: { error: Error; onRetry?: () => v
     <div className="state-panel state-error" role="alert">
       <span className="state-mark">!</span>
       <div>
-        <h2>데이터를 불러오지 못했어요</h2>
-        <p>{error.message}</p>
+        <h2>잠시 문제가 생겼어요</h2>
+        <p>인터넷 연결을 확인한 뒤 다시 시도해주세요.</p>
+        {error.message && <details className="state-error-details"><summary>오류 정보 보기</summary><code>{error.message}</code></details>}
       </div>
       {onRetry && <button className="button button-secondary" onClick={onRetry}>다시 시도</button>}
     </div>

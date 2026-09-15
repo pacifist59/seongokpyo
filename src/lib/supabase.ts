@@ -9,9 +9,9 @@ export const isSupabaseConfigured = Boolean(url && publishableKey);
 export const supabase: SupabaseClient<Database> | null = isSupabaseConfigured
   ? createClient<Database>(url, publishableKey, {
       auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
+        persistSession: !import.meta.env.SSR,
+        autoRefreshToken: !import.meta.env.SSR,
+        detectSessionInUrl: !import.meta.env.SSR,
       },
     })
   : null;

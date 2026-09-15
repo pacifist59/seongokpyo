@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, type DependencyList } from 'react';
+import { useCallback, useContext, useEffect, useState, type DependencyList } from 'react';
+import { InitialDataContext } from '../components/InitialDataContext';
 
 type AsyncState<T> = {
   data: T | null;
@@ -7,16 +8,19 @@ type AsyncState<T> = {
   reload: () => void;
 };
 
-export function useAsync<T>(factory: () => Promise<T>, dependencies: DependencyList): AsyncState<T> {
-  const [data, setData] = useState<T | null>(null);
+export function useAsync<T>(factory: () => Promise<T>, dependencies: DependencyList, key?: string): AsyncState<T> {
+  const initial = useContext(InitialDataContext);
+  const seeded = key !== undefined && Object.hasOwn(initial, key);
+  const [data, setData] = useState<T | null>(() => seeded ? initial[key!] as T : null);
   const [error, setError] = useState<Error | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!seeded);
   const [version, setVersion] = useState(0);
   const reload = useCallback(() => setVersion((value) => value + 1), []);
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    // Revalidate pre-rendered data without replacing the first paint with a spinner.
+    setLoading(!seeded || version > 0);
     setError(null);
     factory()
       .then((value) => {
@@ -30,7 +34,7 @@ export function useAsync<T>(factory: () => Promise<T>, dependencies: DependencyL
       });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...dependencies, version]);
+  }, [...dependencies, key, version]);
 
   return { data, error, loading, reload };
 }
