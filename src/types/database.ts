@@ -26,6 +26,7 @@ export type SongInput = {
   original_artist?: string | null;
   guest_artist?: string | null;
   note?: string | null;
+  youtube_url?: string | null;
 };
 
 export type SetlistOverview = {
@@ -44,6 +45,8 @@ export type SetlistOverview = {
   author_id: string;
   created_at: string;
   updated_at: string;
+  ticket_url: string | null;
+  is_upcoming: boolean;
 };
 
 export type SetlistSongDetail = {
@@ -63,6 +66,7 @@ export type SetlistSongDetail = {
   release_date: string | null;
   external_track_id: string | null;
   spotify_url: string | null;
+  youtube_url: string | null;
 };
 
 export type CommentDetail = {
@@ -199,6 +203,8 @@ export interface Database {
           p_festival_name: string | null;
           p_tour_name: string | null;
           p_songs: Json;
+          p_road_address: string | null;
+          p_ticket_url: string | null;
         };
         Returns: string;
       };
@@ -215,6 +221,8 @@ export interface Database {
           p_festival_name: string | null;
           p_tour_name: string | null;
           p_songs: Json;
+          p_road_address: string | null;
+          p_ticket_url: string | null;
         };
         Returns: string;
       };

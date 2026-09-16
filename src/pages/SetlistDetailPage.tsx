@@ -81,13 +81,14 @@ export function SetlistDetailPage() {
   return <section className="detail-page">
     <div className="detail-masthead">
       <div className="detail-topline"><Link to="/setlists">← 선곡표</Link><span>{item.festival_name ? 'FESTIVAL SET' : 'LIVE SET'}</span></div>
-      <div className="detail-title-row"><div><p>{formatDate(item.performance_date)}</p><h1>{item.artist_name}</h1><h2>{concertContext}</h2></div><div className="detail-count"><strong>{String(songs.length).padStart(2, '0')}</strong><span>SONGS</span></div></div>
+      <div className="detail-title-row"><div><p>{item.is_upcoming ? 'UPCOMING · ' : ''}{formatDate(item.performance_date)}</p><h1>{item.artist_name}</h1><h2>{concertContext}</h2></div><div className="detail-count"><strong>{String(songs.length).padStart(2, '0')}</strong><span>{item.is_upcoming ? 'PLANNED' : 'SONGS'}</span></div></div>
       <div className="detail-meta"><div><small>공연장</small><strong>{item.venue_name || '미정'}</strong><span>{item.region || '지역 미정'}</span></div><div><small>투어</small><strong>{tourName || '—'}</strong></div><div><small>페스티벌</small><strong>{festivalName || '—'}</strong></div></div>
     </div>
 
     <div className="detail-content section">
       <div className="setlist-sheet"><div className="sheet-heading"><span>NO.</span><span>SONG</span><span>ACTION</span></div>{songs.length === 0 ? <EmptyState title="아직 곡이 없습니다" description="작성자가 곡 순서를 추가하면 이곳에 표시됩니다." /> : <><SongRows songs={mainSongs} artistName={item.artist_name} />{encoreSongs.length > 0 && <div className="encore-divider"><span>ENCORE</span><i /></div>}<SongRows songs={encoreSongs} artistName={item.artist_name} /></>}<div className="sheet-footer"><span>{pluralizeSongs(songs.length)}</span><span>마지막 수정 {item.updated_at.slice(0, 10).replaceAll('-', '.')}</span></div></div>
       <aside className="detail-sidebar">
+        {item.ticket_url && <a className="button button-primary button-full" href={item.ticket_url} target="_blank" rel="noreferrer">공식 예매처 열기 ↗</a>}
         <div className="attendance-card"><p>이 공연에 함께 있었나요?</p><h3>나도 갔어요</h3><button className={`attendance-button ${attending ? 'is-active' : ''}`} disabled={interactionLoading} onClick={() => void toggleAttendance()}><span>{attending ? '✓' : '+'}</span>{attending ? '다녀온 공연에 저장됨' : session ? '내 공연에 추가' : '로그인하고 저장'}</button></div>
         <div className="detail-quick-actions"><button className={bookmarked ? 'is-active' : ''} disabled={interactionLoading} onClick={() => void toggleBookmark()} aria-pressed={bookmarked}>{bookmarked ? '♥ 저장됨' : '♡ 저장'}</button><button onClick={() => void share()}>↗ 공유</button></div>
         {canEdit && <><Link className="button button-secondary button-full" to={`/setlist/${id}/edit`}>선곡표 수정</Link><button className="button button-danger button-full" onClick={() => setDeleteOpen(true)}>선곡표 삭제</button></>}
@@ -101,7 +102,8 @@ export function SetlistDetailPage() {
 
 function SongRows({ songs, artistName }: { songs: SetlistSongDetail[]; artistName: string }) {
   return <>{songs.map((song) => {
-    const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${artistName} ${song.title} 공식`)}`;
-    return <div className="song-row" key={song.id}><span className="song-number">{String(song.position).padStart(2, '0')}</span><div className="song-copy">{song.album_image_url && <img src={song.album_image_url} alt="" loading="lazy" />}<span><strong>{song.title}</strong>{song.is_cover && <small>원곡 {song.original_artist_name || '정보 없음'}</small>}{song.album_name && <small>{song.album_name}{song.release_date && ` · ${song.release_date.slice(0, 4)}`}</small>}</span></div><div className="song-action"><p>{[song.guest_artist && `with ${song.guest_artist}`, song.note].filter(Boolean).join(' · ')}</p><a href={youtubeUrl} target="_blank" rel="noreferrer" aria-label={`${artistName} ${song.title} YouTube에서 검색`}><span aria-hidden="true">▶</span>YouTube</a></div></div>;
+    const directUrl = song.youtube_url?.trim();
+    const youtubeUrl = directUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${artistName} ${song.title} 공식`)}`;
+    return <div className="song-row" key={song.id}><span className="song-number">{String(song.position).padStart(2, '0')}</span><div className="song-copy">{song.album_image_url && <img src={song.album_image_url} alt="" loading="lazy" />}<span><strong>{song.title}</strong>{song.is_cover && <small>원곡 {song.original_artist_name || '정보 없음'}</small>}{song.album_name && <small>{song.album_name}{song.release_date && ` · ${song.release_date.slice(0, 4)}`}</small>}</span></div><div className="song-action"><p>{[song.guest_artist && `with ${song.guest_artist}`, song.note].filter(Boolean).join(' · ')}</p><a href={youtubeUrl} target="_blank" rel="noreferrer" aria-label={`${artistName} ${song.title} ${directUrl ? 'YouTube에서 재생' : 'YouTube에서 검색'}`}><span aria-hidden="true">▶</span>{directUrl ? '재생' : '찾기'}</a></div></div>;
   })}</>;
 }

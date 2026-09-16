@@ -266,3 +266,13 @@ main { flex: 1; }
   .state-panel { padding: 28px 18px; }
   .song-action a { min-width: 44px; min-height: 44px; justify-content: center; }
 }
+
+.festival-field { display: flex; flex-direction: column; justify-content: end; gap: 10px; }
+.form-toggle { display: inline-flex !important; align-items: center; gap: 9px; min-height: 46px; color: var(--ink); font-size: .86rem; font-weight: 800; cursor: pointer; }
+.form-toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+.festival-field > label:last-child { display: flex; flex-direction: column; gap: 7px; }
+.venue-finder { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; background: rgba(255,255,255,.38); }
+.venue-finder > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.venue-finder strong { font-size: .82rem; }.venue-finder p, .venue-finder small, .venue-selection, .form-hint { margin: 8px 0 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.55; }.venue-finder small { color: #b44233; }
+.venue-finder ul { display: grid; gap: 7px; margin: 12px 0 0; padding: 0; list-style: none; }.venue-finder li button { width: 100%; display: flex; flex-direction: column; gap: 3px; border: 1px solid var(--line); border-radius: 9px; padding: 10px; background: var(--white); color: var(--ink); text-align: left; cursor: pointer; }.venue-finder li button:hover { border-color: var(--accent); }.venue-finder li span { color: var(--ink-soft); font-size: .72rem; }
+@media (max-width: 520px) { .venue-finder > div { align-items: stretch; flex-direction: column; }.venue-finder .button { width: 100%; } }

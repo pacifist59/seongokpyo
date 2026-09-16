@@ -159,6 +159,7 @@ function songInputsToJson(songs: SongInput[]): Json {
     original_artist: song.original_artist ?? null,
     guest_artist: song.guest_artist ?? null,
     note: song.note ?? null,
+    youtube_url: song.youtube_url ?? null,
   }));
 }
 
@@ -170,8 +171,10 @@ export type SetlistDraft = {
   province: string | null;
   district: string | null;
   addressDetail: string | null;
+  roadAddress: string | null;
   festivalName: string | null;
   tourName: string | null;
+  ticketUrl: string | null;
   songs: SongInput[];
   changeReason?: string | null;
 };
@@ -200,9 +203,11 @@ export async function createSetlist(draft: SetlistDraft): Promise<string> {
     p_province: draft.province,
     p_district: draft.district,
     p_address_detail: draft.addressDetail,
+    p_road_address: draft.roadAddress,
     p_festival_name: draft.festivalName,
     p_tour_name: draft.tourName,
     p_songs: songInputsToJson(draft.songs),
+    p_ticket_url: draft.ticketUrl,
   });
   assertNoError(error);
   if (!data) throw new Error('선곡표 ID를 받지 못했습니다.');
@@ -221,9 +226,11 @@ export async function replaceSetlist(id: string, draft: SetlistDraft): Promise<s
     p_province: draft.province,
     p_district: draft.district,
     p_address_detail: draft.addressDetail,
+    p_road_address: draft.roadAddress,
     p_festival_name: draft.festivalName,
     p_tour_name: draft.tourName,
     p_songs: songInputsToJson(draft.songs),
+    p_ticket_url: draft.ticketUrl,
   });
   assertNoError(error);
   if (!data) throw new Error('선곡표 ID를 받지 못했습니다.');
