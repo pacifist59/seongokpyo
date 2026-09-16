@@ -52,6 +52,11 @@ export function Layout() {
       <main><Outlet /></main>
       <footer className="site-footer">
         <div><strong>선곡표</strong><p>공연의 순간을 곡으로 기록하는 한국형 아카이브</p></div>
+        <div className="footer-links">
+          <NavLink to="/privacy">개인정보처리방침</NavLink>
+          <NavLink to="/terms">이용약관</NavLink>
+          <NavLink to="/contact">문의</NavLink>
+        </div>
         <p>© 2026 선곡표</p>
       </footer>
     </div>

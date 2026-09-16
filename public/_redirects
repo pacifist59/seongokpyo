@@ -1,2 +1,3 @@
-# Explicit member-only SPA routes. Public pages and robots/sitemap are real files.
-/setlist/:id/edit /setlists/new.html 200
+# Public prerendered files are served as-is. The member-only edit route keeps
+# its browser URL and is rewritten to the SPA shell so React can enforce auth.
+/setlist/:id/edit /index.html 200

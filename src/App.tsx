@@ -13,6 +13,8 @@ import { SetlistsPage } from './pages/SetlistsPage';
 import { SetupPage } from './pages/SetupPage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { MyPage } from './pages/MyPage';
+import { ContactPage, PrivacyPage, TermsPage } from './pages/LegalPages';
+import { Analytics } from './components/Analytics';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -27,6 +29,7 @@ export default function App() {
   return (
     <>
       <AuthProvider>
+        <Analytics />
         <ScrollToTop />
         <Routes key={pathname}>
           <Route element={<Layout />}>
@@ -45,6 +48,9 @@ export default function App() {
             <Route path="mypage" element={<MyPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="about/setup" element={<SetupPage />} />
+            <Route path="privacy" element={<PrivacyPage />} />
+            <Route path="terms" element={<TermsPage />} />
+            <Route path="contact" element={<ContactPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

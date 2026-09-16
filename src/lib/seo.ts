@@ -13,6 +13,9 @@ export const staticMetadata: Record<string, Metadata> = {
   '/mypage': { title: '나의 공연 기록 | 선곡표', description: '나의 공연 기록과 저장한 선곡표를 확인하세요.', noindex: true },
   '/setlists/new': { title: '선곡표 등록 | 선곡표', description: '공연 정보와 실제 연주 순서를 기록하세요.', noindex: true },
   '/about/setup': { title: '연결 안내 | 선곡표', description: '서비스 연결 안내', noindex: true },
+  '/privacy': { title: '개인정보처리방침 | 선곡표', description: '선곡표가 수집하고 이용하는 개인정보와 이용자의 권리를 안내합니다.' },
+  '/terms': { title: '이용약관 | 선곡표', description: '선곡표 서비스 이용에 관한 약관과 이용자 책임을 안내합니다.' },
+  '/contact': { title: '문의 | 선곡표', description: '선곡표 서비스 문의와 오류 제보 경로를 안내합니다.' },
 };
 
 export function cleanPath(path: string): string {
