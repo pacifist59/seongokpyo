@@ -267,10 +267,7 @@ main { flex: 1; }
   .song-action a { min-width: 44px; min-height: 44px; justify-content: center; }
 }
 
-.festival-field { display: flex; flex-direction: column; justify-content: end; gap: 10px; }
-.form-toggle { display: inline-flex !important; align-items: center; gap: 9px; min-height: 46px; color: var(--ink); font-size: .86rem; font-weight: 800; cursor: pointer; }
-.form-toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
-.festival-field > label:last-child { display: flex; flex-direction: column; gap: 7px; }
+.event-type { min-height: 46px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-self: end; border: 1px solid var(--line); border-radius: 11px; padding: 4px; background: var(--paper); }.event-type button { border: 0; border-radius: 8px; padding: 0 12px; background: transparent; color: var(--ink-soft); font-weight: 800; cursor: pointer; }.event-type button.is-active { background: var(--white); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 .venue-finder { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; background: rgba(255,255,255,.38); }
 .venue-finder > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .venue-finder strong { font-size: .82rem; }.venue-finder p, .venue-finder small, .venue-selection, .form-hint { margin: 8px 0 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.55; }.venue-finder small { color: #b44233; }

@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8' } });
+const cors = { 'access-control-allow-origin': 'https://probable-memory-98c.pages.dev', 'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type', 'access-control-allow-methods': 'POST, OPTIONS', 'content-type': 'application/json; charset=utf-8' };
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: cors });
 const required = (name: string) => {
   const value = Deno.env.get(name)?.trim();
   if (!value) throw new Error(`${name} is not configured.`);
@@ -9,6 +10,7 @@ const required = (name: string) => {
 
 Deno.serve(async (request) => {
   try {
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
     const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
     if (!token) return json({ error: 'Login required.' }, 401);

@@ -109,7 +109,8 @@ export function SetlistFormPage() {
         <label><span>공연 날짜 *</span><input required type="date" value={fields.performanceDate} onChange={(event) => setField('performanceDate', event.target.value)} /></label>
         <label><span>공연명</span><input value={fields.concertTitle ?? ''} onChange={(event) => setField('concertTitle', event.target.value)} placeholder="예: The Present" /></label>
         <label><span>투어</span><input value={fields.tourName ?? ''} onChange={(event) => setField('tourName', event.target.value)} placeholder="선택 입력" /></label>
-        <div className="festival-field"><label className="form-toggle"><input type="checkbox" checked={isFestival} onChange={(event) => { setIsFestival(event.target.checked); if (!event.target.checked) setField('festivalName', ''); }} /> <span>페스티벌 공연입니다</span></label>{isFestival && <label><span>페스티벌명</span><input value={fields.festivalName ?? ''} onChange={(event) => setField('festivalName', event.target.value)} placeholder="예: 펜타포트 락 페스티벌" /></label>}</div>
+        <div className="event-type" role="group" aria-label="공연 종류"><button type="button" className={!isFestival ? 'is-active' : ''} onClick={() => { setIsFestival(false); setField('festivalName', ''); }}>단독 공연</button><button type="button" className={isFestival ? 'is-active' : ''} onClick={() => setIsFestival(true)}>페스티벌 공연</button></div>
+        {isFestival && <label className="span-2"><span>페스티벌명</span><input value={fields.festivalName ?? ''} onChange={(event) => setField('festivalName', event.target.value)} placeholder="예: 펜타포트 락 페스티벌" /></label>}
       </div></div></section>
 
       <section className="form-section"><div className="form-section-number">02</div><div className="form-section-content"><div className="form-section-title"><h2>공연장</h2><p>한국 주소 체계에 맞게 나눠 저장합니다.</p></div><div className="form-grid">
