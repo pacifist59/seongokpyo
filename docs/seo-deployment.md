@@ -9,7 +9,7 @@
 - 분석은 `VITE_ANALYTICS_ENABLED=true`와 `VITE_GA_MEASUREMENT_ID=G-...`를 함께 설정한 경우에만 로드됩니다. 활성화 전 개인정보처리방침과 Search Console 속성을 먼저 확인합니다.
 - Cloudflare Pages 빌드 명령: `pnpm build`, 출력 디렉터리: `dist`.
 - 공개 데이터 조회 실패 시 빌드를 실패시켜 불완전한 사이트맵으로 기존 배포가 교체되지 않게 합니다.
-- `_redirects`는 실제 HTML/robots/sitemap 파일을 우선 제공하고, `/setlist/:id/edit`만 `/index.html`로 rewrite해 주소와 `id`를 유지합니다. 편집 화면은 React가 로그인과 작성자 권한을 확인합니다.
+- `_redirects`는 실제 HTML/robots/sitemap 파일을 우선 제공하고, `/setlist/:id/edit`만 `/`로 rewrite해 주소와 `id`를 유지합니다. 편집 화면은 React가 로그인과 작성자 권한을 확인합니다. `/index.html`을 destination으로 쓰면 Pages의 pretty URL 정규화가 추가로 발생할 수 있습니다.
 - 로그인·마이페이지·등록·설정은 초기 HTML에서 noindex이며 sitemap에서 제외합니다. 검색봇이 noindex를 읽을 수 있도록 robots.txt로 차단하지 않습니다.
 
 ## 데이터 갱신 범위
