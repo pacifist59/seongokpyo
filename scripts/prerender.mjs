@@ -7,6 +7,8 @@ const template = (await readFile(resolve(output, 'index.html'), 'utf8'))
   .replace(/<title>[\s\S]*?<\/title>/g, '')
   .replace(/<meta\s+(?:name|property)="(?:description|robots|og:[^"]+|twitter:[^"]+)"[^>]*>/g, '')
   .replace(/<link\s+rel="canonical"[^>]*>/g, '');
+// Protected edit pages use the production SPA shell without prerendered home data.
+await writeFile(resolve(output, 'edit-shell.html'), template);
 const escapeXml = (value) => value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char]);
 const urls = [];
 const routes = [];

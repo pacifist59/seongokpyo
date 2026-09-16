@@ -1,3 +1,3 @@
 # Public prerendered files are served as-is. The member-only edit route keeps
-# its browser URL and is rewritten to the SPA shell so React can enforce auth.
-/setlist/:id/edit / 200
+# its browser URL and is rewritten to the empty production SPA shell.
+/setlist/:id/edit /edit-shell.html 200
