@@ -8,6 +8,7 @@ import { useToast } from '../components/ToastContext';
 import { useAsync } from '../hooks/useAsync';
 import { useDocumentMetadata } from '../hooks/useDocumentMetadata';
 import { formatDate, formatOptionalSetlistContext, formatSetlistContext, pluralizeSongs } from '../lib/format';
+import { requireSupabase } from '../lib/supabase';
 import { deleteSetlist, getAttendance, getBookmark, getSetlist, setAttendance, setBookmark } from '../services/catalog';
 import type { SetlistSongDetail } from '../types/database';
 
@@ -104,7 +105,27 @@ export function SetlistDetailPage() {
 function SongRows({ songs, artistName }: { songs: SetlistSongDetail[]; artistName: string }) {
   return <>{songs.map((song) => {
     const directUrl = song.youtube_url?.trim();
-    const youtubeUrl = directUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${artistName} ${song.title} 공식`)}`;
-    return <div className="song-row" key={song.id}><span className="song-number">{String(song.position).padStart(2, '0')}</span><div className="song-copy">{song.album_image_url && <img src={song.album_image_url} alt="" loading="lazy" />}<span><strong>{song.title}</strong>{song.is_cover && <small>원곡 {song.original_artist_name || '정보 없음'}</small>}{song.album_name && <small>{song.album_name}{song.release_date && ` · ${song.release_date.slice(0, 4)}`}</small>}</span></div><div className="song-action"><p>{[song.guest_artist && `with ${song.guest_artist}`, song.note].filter(Boolean).join(' · ')}</p><a href={youtubeUrl} target="_blank" rel="noreferrer" aria-label={`${artistName} ${song.title} ${directUrl ? 'YouTube에서 재생' : 'YouTube에서 검색'}`}><span aria-hidden="true">▶</span>{directUrl ? '재생' : '찾기'}</a></div></div>;
+    return <div className="song-row" key={song.id}><span className="song-number">{String(song.position).padStart(2, '0')}</span><div className="song-copy">{song.album_image_url && <img src={song.album_image_url} alt="" loading="lazy" />}<span><strong>{song.title}</strong>{song.is_cover && <small>원곡 {song.original_artist_name || '정보 없음'}</small>}{song.album_name && <small>{song.album_name}{song.release_date && ` · ${song.release_date.slice(0, 4)}`}</small>}</span></div><div className="song-action"><p>{[song.guest_artist && `with ${song.guest_artist}`, song.note].filter(Boolean).join(' · ')}</p><YouTubePlayButton artistName={artistName} song={song} directUrl={directUrl} /></div></div>;
   })}</>;
+}
+
+function YouTubePlayButton({ artistName, song, directUrl }: { artistName: string; song: SetlistSongDetail; directUrl?: string }) {
+  const [loading, setLoading] = useState(false);
+  const fallbackUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${artistName} ${song.title} 공식`)}`;
+  const play = async () => {
+    if (directUrl) { window.open(directUrl, '_blank', 'noopener,noreferrer'); return; }
+    const cacheKey = `youtube-video:${artistName}:${song.title}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) { window.open(cached, '_blank', 'noopener,noreferrer'); return; }
+    setLoading(true);
+    try {
+      const { data, error } = await requireSupabase().functions.invoke('youtube-search', { body: { artist: artistName, title: song.title } });
+      if (error || typeof data?.url !== 'string') throw error || new Error('No YouTube result.');
+      sessionStorage.setItem(cacheKey, data.url);
+      window.open(data.url, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    } finally { setLoading(false); }
+  };
+  return <button type="button" onClick={() => void play()} disabled={loading} aria-label={`${artistName} ${song.title} YouTube에서 재생`}><span aria-hidden="true">▶</span>{loading ? '찾는 중' : '재생'}</button>;
 }

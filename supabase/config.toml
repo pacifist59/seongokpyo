@@ -392,6 +392,11 @@ verify_jwt = false
 # preflight requests with the required CORS headers.
 verify_jwt = false
 
+[functions.youtube-search]
+# The YouTube key is server-only. The handler validates origin and input before
+# making a one-result lookup, so no key enters the browser bundle.
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
