@@ -46,6 +46,7 @@ export function SetlistDetailPage() {
   const concertContext = formatSetlistContext(item.artist_name, item.concert_title, item.tour_name);
   const tourName = formatOptionalSetlistContext(item.artist_name, item.tour_name);
   const festivalName = formatOptionalSetlistContext(item.artist_name, item.festival_name);
+  const ticketSearchUrl = `https://www.google.com/search?q=${encodeURIComponent([item.artist_name, item.concert_title, item.performance_date, '예매'].filter(Boolean).join(' '))}`;
 
   const toggleAttendance = async () => {
     if (!session) { navigate(`/login?next=${encodeURIComponent(`/setlist/${id}`)}`); return; }
@@ -88,7 +89,7 @@ export function SetlistDetailPage() {
     <div className="detail-content section">
       <div className="setlist-sheet"><div className="sheet-heading"><span>NO.</span><span>SONG</span><span>ACTION</span></div>{songs.length === 0 ? <EmptyState title="아직 곡이 없습니다" description="작성자가 곡 순서를 추가하면 이곳에 표시됩니다." /> : <><SongRows songs={mainSongs} artistName={item.artist_name} />{encoreSongs.length > 0 && <div className="encore-divider"><span>ENCORE</span><i /></div>}<SongRows songs={encoreSongs} artistName={item.artist_name} /></>}<div className="sheet-footer"><span>{pluralizeSongs(songs.length)}</span><span>마지막 수정 {item.updated_at.slice(0, 10).replaceAll('-', '.')}</span></div></div>
       <aside className="detail-sidebar">
-        {item.ticket_url && <a className="button button-primary button-full" href={item.ticket_url} target="_blank" rel="noreferrer">공식 예매처 열기 ↗</a>}
+        {item.ticket_url ? <a className="button button-primary button-full" href={item.ticket_url} target="_blank" rel="noreferrer">공식 예매처 열기 ↗</a> : item.is_upcoming && <a className="button button-secondary button-full" href={ticketSearchUrl} target="_blank" rel="noreferrer">예매처 검색 ↗</a>}
         <div className="attendance-card"><p>이 공연에 함께 있었나요?</p><h3>나도 갔어요</h3><button className={`attendance-button ${attending ? 'is-active' : ''}`} disabled={interactionLoading} onClick={() => void toggleAttendance()}><span>{attending ? '✓' : '+'}</span>{attending ? '다녀온 공연에 저장됨' : session ? '내 공연에 추가' : '로그인하고 저장'}</button></div>
         <div className="detail-quick-actions"><button className={bookmarked ? 'is-active' : ''} disabled={interactionLoading} onClick={() => void toggleBookmark()} aria-pressed={bookmarked}>{bookmarked ? '♥ 저장됨' : '♡ 저장'}</button><button onClick={() => void share()}>↗ 공유</button></div>
         {canEdit && <><Link className="button button-secondary button-full" to={`/setlist/${id}/edit`}>선곡표 수정</Link><button className="button button-danger button-full" onClick={() => setDeleteOpen(true)}>선곡표 삭제</button></>}

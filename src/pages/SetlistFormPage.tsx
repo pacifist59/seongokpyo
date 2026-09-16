@@ -52,6 +52,7 @@ export function SetlistFormPage() {
   }, [existing.data]);
 
   const upcoming = Boolean(fields.performanceDate && fields.performanceDate > new Date().toISOString().slice(0, 10));
+  const ticketSearchUrl = `https://www.google.com/search?q=${encodeURIComponent([fields.artistName, fields.concertTitle, fields.performanceDate, '예매'].filter(Boolean).join(' '))}`;
 
   const normalizedSongs = useMemo(() => songs.map((song, index) => ({ ...song, position: index + 1 })), [songs]);
   const setField = (name: keyof FormFields, value: string) => setFields((current) => ({ ...current, [name]: value }));
@@ -122,7 +123,7 @@ export function SetlistFormPage() {
         <label className="span-2"><span>상세 위치</span><input value={fields.addressDetail ?? ''} onChange={(event) => setField('addressDetail', event.target.value)} placeholder="선택 입력" /></label>
       </div></div></section>
 
-      <section className="form-section"><div className="form-section-number">03</div><div className="form-section-content"><div className="form-section-title"><h2>{upcoming ? '예정 공연' : '예매 정보'}</h2><p>{upcoming ? '아직 선곡표가 없어도 저장할 수 있습니다.' : '공식 예매 링크가 있으면 함께 남겨주세요.'}</p></div><div className="form-grid"><label className="span-2"><span>공식 예매 링크</span><input type="url" value={fields.ticketUrl ?? ''} onChange={(event) => setField('ticketUrl', event.target.value)} placeholder="https://ticket.example.com/..." /></label>{upcoming && <p className="form-hint span-2">공연 뒤에 수정에서 실제 연주 순서를 추가하면 됩니다.</p>}</div></div></section>
+      <section className="form-section"><div className="form-section-number">03</div><div className="form-section-content"><div className="form-section-title"><h2>{upcoming ? '예정 공연' : '예매 정보'}</h2><p>{upcoming ? '아직 선곡표가 없어도 저장할 수 있습니다.' : '공식 예매 링크가 있으면 함께 남겨주세요.'}</p></div><div className="form-grid"><label className="span-2"><span>공식 예매 링크</span><input type="url" value={fields.ticketUrl ?? ''} onChange={(event) => setField('ticketUrl', event.target.value)} placeholder="https://ticket.example.com/..." /></label>{fields.artistName && <a className="underlined-link ticket-search-link span-2" href={ticketSearchUrl} target="_blank" rel="noreferrer">예매처 검색으로 찾기 ↗</a>}{upcoming && <p className="form-hint span-2">공연 뒤에 수정에서 실제 연주 순서를 추가하면 됩니다.</p>}</div></div></section>
 
       <section className="form-section song-form-section"><div className="form-section-number">04</div><div className="form-section-content"><div className="form-section-title song-title-row"><div><h2>{upcoming ? '예상 선곡표 (선택)' : '연주 순서'}</h2><p>{upcoming ? '공연 전에는 비워두고, 공연 후 실제 순서를 기록해주세요.' : '곡명 입력 후 Enter를 누르면 다음 줄이 생깁니다.'}</p></div><button type="button" className="button button-secondary button-small" onClick={() => insertSong(songs.length - 1, 'main')}>+ 곡 추가</button></div><div className="song-editor">
         {normalizedSongs.map((song, index) => <div className={`song-editor-row ${song.section === 'encore' ? 'encore-row' : ''}`} key={song.key}>

@@ -28,6 +28,12 @@ function kakaoMapUrl(name: string, address: string, latitude: number | null, lon
   return `https://map.kakao.com/link/search/${encodeURIComponent(address || name)}`;
 }
 
+function openStreetMapEmbedUrl(latitude: number, longitude: number) {
+  const delta = 0.004;
+  const bbox = [longitude - delta, latitude - delta, longitude + delta, latitude + delta].join('%2C');
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+}
+
 export function VenueMap({ name, address, latitude, longitude, geocodeStatus }: { name: string; address: string; latitude: number | null; longitude: number | null; geocodeStatus?: 'pending' | 'complete' | 'failed' | 'not_available' }) {
   const container = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>(() => latitude != null && longitude != null ? 'loading' : 'ready');
@@ -67,6 +73,7 @@ export function VenueMapPreview({ name, address, latitude, longitude, placeUrl }
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const key = import.meta.env.VITE_KAKAO_MAP_JAVASCRIPT_KEY?.trim();
   const mapUrl = placeUrl || kakaoMapUrl(name, address, latitude, longitude);
+  const fallbackMapUrl = openStreetMapEmbedUrl(latitude, longitude);
 
   useEffect(() => {
     if (!key || !container.current) { setState('failed'); return; }
@@ -85,7 +92,7 @@ export function VenueMapPreview({ name, address, latitude, longitude, placeUrl }
 
   return <div className="venue-search-preview">
     <div className="venue-search-map" ref={container} aria-label={`${name} 지도 미리보기`}>
-      {state !== 'ready' && <div className="map-fallback is-loading"><span aria-hidden="true">⌖</span><strong>{key ? '지도 미리보기를 불러오는 중…' : '지도 미리보기 키를 연결하면 여기에 표시됩니다.'}</strong><small>{address}</small></div>}
+      {state !== 'ready' && <iframe title={`${name} 위치 미리보기`} src={fallbackMapUrl} loading="lazy" referrerPolicy="no-referrer" />}
     </div>
     <a href={mapUrl} target="_blank" rel="noreferrer">카카오맵에서 크게 보기 ↗</a>
   </div>;
