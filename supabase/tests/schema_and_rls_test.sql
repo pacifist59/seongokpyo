@@ -1,5 +1,5 @@
 begin;
-select plan(37);
+select plan(43);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'artists', 'artists table exists');
@@ -66,6 +66,45 @@ select has_table_privilege('authenticated', 'public.setlists', 'INSERT', 'member
 select hasnt_table_privilege('authenticated', 'public.artists', 'UPDATE', 'members cannot rewrite shared artist records');
 select has_table_privilege('anon', 'public.comments', 'SELECT', 'visitors can read comments');
 select hasnt_table_privilege('anon', 'public.comments', 'INSERT', 'visitors cannot create comments');
+select hasnt_table_privilege('anon', 'public.setlist_bookmarks', 'INSERT', 'visitors cannot create bookmarks');
+
+select ok(
+  not has_function_privilege('anon', 'public.delete_setlist(uuid)', 'EXECUTE'),
+  'visitors cannot execute the delete RPC'
+);
+select ok(
+  has_function_privilege('authenticated', 'public.delete_setlist(uuid)', 'EXECUTE'),
+  'members can execute the owner-checked delete RPC'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.create_setlist(text,date,text,text,text,text,text,text,text,jsonb)',
+    'EXECUTE'
+  ),
+  'visitors cannot execute the create RPC'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.replace_setlist(uuid,text,date,text,text,text,text,text,text,text,jsonb)',
+    'EXECUTE'
+  ),
+  'visitors cannot execute the replace RPC'
+);
+select ok(
+  (
+    select count(*) = 6 and bool_and(c.relrowsecurity)
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname in (
+        'setlists', 'attendances', 'comments', 'setlist_bookmarks',
+        'setlist_revisions', 'setlist_activity'
+      )
+  ),
+  'all account-sensitive tables have RLS enabled'
+);
 
 select * from finish();
 rollback;
