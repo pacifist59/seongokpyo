@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { CommentsSection } from '../components/CommentsSection';
+import { CorrectionSection } from '../components/CorrectionSection';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import { useToast } from '../components/ToastContext';
@@ -97,7 +98,7 @@ export function SetlistDetailPage() {
         <div className="detail-note"><strong>기록 원칙</strong><p>공연에서 실제 연주된 순서를 기준으로 합니다. 불확실한 정보는 메모에 남겨주세요.</p></div>
       </aside>
     </div>
-    <div className="section"><CommentsSection setlistId={id} /></div>
+    <div className="section detail-community"><CorrectionSection setlistId={id} /><CommentsSection setlistId={id} /></div>
     <ConfirmDialog open={deleteOpen} title="이 선곡표를 삭제하시겠습니까?" description="삭제한 선곡표는 복구할 수 없습니다. 댓글과 참석·북마크 연결도 함께 삭제됩니다." loading={interactionLoading} onCancel={() => setDeleteOpen(false)} onConfirm={() => void confirmDelete()} />
   </section>;
 }

@@ -19,12 +19,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    const client = supabase;
+    let active = true;
+    const loadVerifiedSession = async () => {
+      const { data: { session: storedSession } } = await client.auth.getSession();
+      if (!storedSession) {
+        if (active) { setSession(null); setLoading(false); }
+        return;
+      }
+      const { data: { user }, error } = await client.auth.getUser();
+      if (!active) return;
+      if (error || !user) {
+        await client.auth.signOut({ scope: 'local' });
+        if (active) setSession(null);
+      } else {
+        setSession(storedSession);
+      }
+      if (active) setLoading(false);
+    };
+    void loadVerifiedSession();
+    const { data } = client.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
       setLoading(false);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
-    return () => data.subscription.unsubscribe();
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
 
   const value = useMemo<AuthValue>(() => ({

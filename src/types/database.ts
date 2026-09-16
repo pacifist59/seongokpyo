@@ -81,6 +81,21 @@ export type CommentDetail = {
   updated_at: string;
 };
 
+export type SetlistCorrection = {
+  id: string;
+  setlist_id: string;
+  reporter_id: string;
+  issue_type: 'song_order' | 'song_title' | 'concert_info' | 'venue' | 'tour' | 'festival' | 'other';
+  proposed_value: string;
+  reason: string;
+  evidence_url: string | null;
+  status: 'pending' | 'community_confirmed' | 'rejected' | 'applied';
+  confirmation_count: number;
+  created_at: string;
+  updated_at: string;
+  voted_by_me?: boolean;
+};
+
 export type SongCatalogItem = {
   id: string;
   artist_id: string;
@@ -176,6 +191,12 @@ export interface Database {
       setlist_bookmarks: Table<{
         user_id: string; setlist_id: string; created_at: string;
       }, { user_id: string; setlist_id: string; created_at?: string }>;
+      setlist_corrections: Table<SetlistCorrection, {
+        id?: string; setlist_id: string; reporter_id: string; issue_type: SetlistCorrection['issue_type']; proposed_value: string; reason: string; evidence_url?: string | null;
+      }>;
+      setlist_correction_votes: Table<{
+        correction_id: string; user_id: string; created_at: string;
+      }, { correction_id: string; user_id: string; created_at?: string }>;
       setlist_activity: Table<{
         id: number; setlist_id: string | null; actor_id: string | null; action: 'created' | 'edited' | 'deleted'; reason: string | null; snapshot: Json; created_at: string;
       }, { id?: number; setlist_id?: string | null; actor_id: string; action: 'created' | 'edited'; reason?: string | null; snapshot?: Json; created_at?: string }>;

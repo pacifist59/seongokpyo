@@ -8,6 +8,7 @@ import type {
   Json,
   SearchResult,
   SetlistOverview,
+  SetlistCorrection,
   SetlistSongDetail,
   SongInput,
   SongCatalogItem,
@@ -343,5 +344,40 @@ export async function setAttendance(setlistId: string, userId: string, attending
   const result = attending
     ? await client.from('attendances').upsert({ setlist_id: setlistId, user_id: userId }, { onConflict: 'user_id,setlist_id' })
     : await client.from('attendances').delete().eq('setlist_id', setlistId).eq('user_id', userId);
+  assertNoError(result.error);
+}
+
+export type CorrectionInput = Pick<SetlistCorrection, 'issue_type' | 'proposed_value' | 'reason'> & { evidence_url?: string | null };
+
+export async function getSetlistCorrections(setlistId: string, userId: string): Promise<SetlistCorrection[]> {
+  const client = requireSupabase();
+  const [{ data: corrections, error: correctionsError }, { data: votes, error: votesError }] = await Promise.all([
+    client.from('setlist_corrections').select('*').eq('setlist_id', setlistId).order('created_at', { ascending: false }),
+    client.from('setlist_correction_votes').select('correction_id').eq('user_id', userId),
+  ]);
+  assertNoError(correctionsError);
+  assertNoError(votesError);
+  const voted = new Set(votes?.map((vote) => vote.correction_id) ?? []);
+  return (corrections ?? []).map((correction) => ({ ...correction, voted_by_me: voted.has(correction.id) }));
+}
+
+export async function createSetlistCorrection(setlistId: string, userId: string, input: CorrectionInput): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('setlist_corrections').insert({
+    setlist_id: setlistId,
+    reporter_id: userId,
+    issue_type: input.issue_type,
+    proposed_value: input.proposed_value.trim(),
+    reason: input.reason.trim(),
+    evidence_url: input.evidence_url?.trim() || null,
+  });
+  assertNoError(error);
+}
+
+export async function setCorrectionVote(correctionId: string, userId: string, voted: boolean): Promise<void> {
+  const client = requireSupabase();
+  const result = voted
+    ? await client.from('setlist_correction_votes').insert({ correction_id: correctionId, user_id: userId })
+    : await client.from('setlist_correction_votes').delete().eq('correction_id', correctionId).eq('user_id', userId);
   assertNoError(result.error);
 }
