@@ -61,3 +61,32 @@ export function VenueMap({ name, address, latitude, longitude, geocodeStatus }: 
     <a className="button button-secondary button-full" href={mapUrl} target="_blank" rel="noreferrer">카카오맵에서 위치 확인 ↗</a>
   </section>;
 }
+
+export function VenueMapPreview({ name, address, latitude, longitude, placeUrl }: { name: string; address: string; latitude: number; longitude: number; placeUrl?: string }) {
+  const container = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
+  const key = import.meta.env.VITE_KAKAO_MAP_JAVASCRIPT_KEY?.trim();
+  const mapUrl = placeUrl || kakaoMapUrl(name, address, latitude, longitude);
+
+  useEffect(() => {
+    if (!key || !container.current) { setState('failed'); return; }
+    let active = true;
+    const render = () => {
+      if (!window.kakao?.maps || !container.current) throw new Error('Kakao Maps is unavailable.');
+      const position = new window.kakao.maps.LatLng(latitude, longitude);
+      const map = new window.kakao.maps.Map(container.current, { center: position, level: 3 });
+      new window.kakao.maps.Marker({ position, map, title: name });
+      if (active) setState('ready');
+    };
+    setState('loading');
+    loadKakaoMaps(key).then(render).catch(() => { if (active) setState('failed'); });
+    return () => { active = false; };
+  }, [key, latitude, longitude, name]);
+
+  return <div className="venue-search-preview">
+    <div className="venue-search-map" ref={container} aria-label={`${name} 지도 미리보기`}>
+      {state !== 'ready' && <div className="map-fallback is-loading"><span aria-hidden="true">⌖</span><strong>{key ? '지도 미리보기를 불러오는 중…' : '지도 미리보기 키를 연결하면 여기에 표시됩니다.'}</strong><small>{address}</small></div>}
+    </div>
+    <a href={mapUrl} target="_blank" rel="noreferrer">카카오맵에서 크게 보기 ↗</a>
+  </div>;
+}

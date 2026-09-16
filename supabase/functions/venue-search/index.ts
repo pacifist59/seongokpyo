@@ -27,8 +27,15 @@ Deno.serve(async (request) => {
     });
     if (response.status === 429) return json({ error: '지도 검색 한도에 도달했습니다. 잠시 후 다시 시도해주세요.' }, 429);
     if (!response.ok) throw new Error(`Kakao Local API returned ${response.status}.`);
-    const data = await response.json() as { documents?: Array<{ place_name: string; road_address_name: string; address_name: string }> };
-    return json({ places: (data.documents ?? []).map((place) => ({ name: place.place_name, roadAddress: place.road_address_name, address: place.address_name })) });
+    const data = await response.json() as { documents?: Array<{ place_name: string; road_address_name: string; address_name: string; x: string; y: string; place_url: string }> };
+    return json({ places: (data.documents ?? []).map((place) => ({
+      name: place.place_name,
+      roadAddress: place.road_address_name,
+      address: place.address_name,
+      latitude: Number(place.y),
+      longitude: Number(place.x),
+      placeUrl: place.place_url,
+    })) });
   } catch (reason) {
     return json({ error: reason instanceof Error ? reason.message : 'Venue search failed.' }, 500);
   }

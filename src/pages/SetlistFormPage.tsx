@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { ErrorState, LoadingState } from '../components/States';
 import { SongAutocomplete } from '../components/SongAutocomplete';
-import { VenueFinder } from '../components/VenueFinder';
+import { splitKoreanAddress, VenueFinder } from '../components/VenueFinder';
 import { useAsync } from '../hooks/useAsync';
 import { createSetlist, getSetlist, replaceSetlist, type SetlistDraft } from '../services/catalog';
 import type { SongInput } from '../types/database';
@@ -115,7 +115,7 @@ export function SetlistFormPage() {
 
       <section className="form-section"><div className="form-section-number">02</div><div className="form-section-content"><div className="form-section-title"><h2>공연장</h2><p>한국 주소 체계에 맞게 나눠 저장합니다.</p></div><div className="form-grid">
         <label className="span-2"><span>공연장 이름</span><input value={fields.venueName ?? ''} onChange={(event) => setField('venueName', event.target.value)} placeholder="예: KSPO DOME" /></label>
-        <VenueFinder query={fields.venueName ?? ''} onSelect={(venue) => setFields((current) => ({ ...current, venueName: venue.name, roadAddress: venue.roadAddress, addressDetail: venue.address }))} />
+        <VenueFinder query={fields.venueName ?? ''} onSelect={(venue) => setFields((current) => ({ ...current, venueName: venue.name, roadAddress: venue.roadAddress, addressDetail: venue.address, ...splitKoreanAddress(venue.roadAddress || venue.address) }))} />
         {fields.roadAddress && <p className="venue-selection span-2">선택한 지도 정보: {fields.roadAddress}</p>}
         <label><span>시/도</span><input value={fields.province ?? ''} onChange={(event) => setField('province', event.target.value)} placeholder="예: 서울특별시" /></label>
         <label><span>시/군/구</span><input value={fields.district ?? ''} onChange={(event) => setField('district', event.target.value)} placeholder="예: 송파구" /></label>

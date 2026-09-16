@@ -40,6 +40,7 @@ export type SetlistOverview = {
   region: string | null;
   festival_id: string | null;
   festival_name: string | null;
+  tour_id: string | null;
   tour_name: string | null;
   song_count: number;
   author_id: string;

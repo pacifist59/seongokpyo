@@ -10,6 +10,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { SetlistDetailPage } from './pages/SetlistDetailPage';
 import { SetlistFormPage } from './pages/SetlistFormPage';
 import { SetlistsPage } from './pages/SetlistsPage';
+import { TourDetailPage } from './pages/TourDetailPage';
 import { SetupPage } from './pages/SetupPage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { MyPage } from './pages/MyPage';
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="venues/:id" element={<VenueDetailPage />} />
             <Route path="festivals" element={<FestivalsPage />} />
             <Route path="festivals/:id" element={<FestivalDetailPage />} />
+            <Route path="tours/:id" element={<TourDetailPage />} />
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="mypage" element={<MyPage />} />
             <Route path="login" element={<LoginPage />} />

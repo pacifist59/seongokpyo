@@ -82,7 +82,7 @@ export function SetlistDetailPage() {
     <div className="detail-masthead">
       <div className="detail-topline"><Link to="/setlists">← 선곡표</Link><span>{item.festival_name ? 'FESTIVAL SET' : 'LIVE SET'}</span></div>
       <div className="detail-title-row"><div><p>{item.is_upcoming ? 'UPCOMING · ' : ''}{formatDate(item.performance_date)}</p><h1>{item.artist_name}</h1><h2>{concertContext}</h2></div><div className="detail-count"><strong>{String(songs.length).padStart(2, '0')}</strong><span>{item.is_upcoming ? 'PLANNED' : 'SONGS'}</span></div></div>
-      <div className="detail-meta"><div><small>공연장</small><strong>{item.venue_name || '미정'}</strong><span>{item.region || '지역 미정'}</span></div><div><small>투어</small><strong>{tourName || '—'}</strong></div><div><small>페스티벌</small><strong>{festivalName || '—'}</strong></div></div>
+      <div className="detail-meta"><div><small>공연장</small>{item.venue_id ? <Link to={`/venues/${item.venue_id}`}><strong>{item.venue_name || '미정'}</strong><span>{item.region || '지역 미정'}</span></Link> : <><strong>미정</strong><span>지역 미정</span></>}</div><div><small>투어</small>{item.tour_id ? <Link to={`/tours/${item.tour_id}`}><strong>{tourName || '—'}</strong></Link> : <strong>—</strong>}</div><div><small>페스티벌</small>{item.festival_id ? <Link to={`/festivals/${item.festival_id}`}><strong>{festivalName || '—'}</strong></Link> : <strong>—</strong>}</div></div>
     </div>
 
     <div className="detail-content section">
