@@ -361,6 +361,11 @@ async function setSetlistPoster(setlistId: string, posterUrl: string | null, pos
   assertNoError(error);
 }
 
+export async function updateSetlistPoster(setlistId: string, posterUrl: string | null, posterSourceUrl: string | null, changeReason?: string | null): Promise<void> {
+  await setSetlistPoster(setlistId, posterUrl, posterSourceUrl);
+  await recordActivity(setlistId, 'edited', changeReason || '공식 포스터 변경');
+}
+
 export type CorrectionInput = Pick<SetlistCorrection, 'issue_type' | 'proposed_value' | 'reason'> & { evidence_url?: string | null };
 
 export async function getSetlistCorrections(setlistId: string, userId: string): Promise<SetlistCorrection[]> {
