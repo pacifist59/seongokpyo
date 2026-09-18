@@ -71,7 +71,7 @@ export function SetlistFormPage() {
   };
   const removeSong = (key: string) => setSongs((current) => current.length === 1 ? [newSong(1)] : current.filter((song) => song.key !== key));
   const importSongs = () => {
-    const titles = bulkSongs.split(/\r?\n/).map((title) => title.replace(/^\s*(?:\d+[.)-]?|[-•])\s*/, '').trim()).filter(Boolean);
+    const titles = bulkSongs.split(/\r?\n/).map((title) => title.replace(/^\s*(?:\d+[.)]|[-•])\s*/, '').trim()).filter(Boolean);
     if (!titles.length) return;
     setSongs(titles.map((title, index) => ({ ...newSong(index + 1), title })));
     setBulkSongs('');
