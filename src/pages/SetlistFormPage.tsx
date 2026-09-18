@@ -27,6 +27,7 @@ export function SetlistFormPage() {
   const existing = useAsync(() => id ? getSetlist(id) : Promise.resolve(null), [id]);
   const [fields, setFields] = useState<FormFields>(emptyFields);
   const [songs, setSongs] = useState<SongRow[]>([newSong(1)]);
+  const [bulkSongs, setBulkSongs] = useState('');
   const [isFestival, setIsFestival] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -69,6 +70,12 @@ export function SetlistFormPage() {
     setSongs((current) => { const copy = [...current]; [copy[index], copy[target]] = [copy[target], copy[index]]; return copy; });
   };
   const removeSong = (key: string) => setSongs((current) => current.length === 1 ? [newSong(1)] : current.filter((song) => song.key !== key));
+  const importSongs = () => {
+    const titles = bulkSongs.split(/\r?\n/).map((title) => title.replace(/^\s*(?:\d+[.)-]?|[-•])\s*/, '').trim()).filter(Boolean);
+    if (!titles.length) return;
+    setSongs(titles.map((title, index) => ({ ...newSong(index + 1), title })));
+    setBulkSongs('');
+  };
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError('');
     const cleanSongs = normalizedSongs.filter((song) => song.title.trim()).map(({ key: _key, ...song }) => ({ ...song, title: song.title.trim() }));
@@ -139,7 +146,7 @@ export function SetlistFormPage() {
 
       <section className="form-section"><div className="form-section-number">03</div><div className="form-section-content"><div className="form-section-title"><h2>{upcoming ? '예정 공연' : '예매 · 포스터'}</h2><p>{upcoming ? '아직 선곡표가 없어도 저장할 수 있습니다.' : '공식 예매 링크와 공식 공개 포스터를 함께 남길 수 있습니다.'}</p></div><div className="form-grid"><label className="span-2"><span>공식 예매 링크</span><input type="url" value={fields.ticketUrl ?? ''} onChange={(event) => setField('ticketUrl', event.target.value)} placeholder="https://ticket.example.com/..." /></label><label className="span-2"><span>공식 포스터 이미지 URL</span><input type="url" value={fields.posterUrl ?? ''} onChange={(event) => setField('posterUrl', event.target.value)} placeholder="https://.../poster.jpg" /></label><label className="span-2"><span>포스터 출처 페이지 URL</span><input type="url" value={fields.posterSourceUrl ?? ''} onChange={(event) => setField('posterSourceUrl', event.target.value)} placeholder="https://official.example.com/event" /></label>{fields.posterUrl && <div className="poster-form-preview span-2"><img src={fields.posterUrl} alt="입력한 공연 포스터 미리보기" /><span>외부 공식 URL의 이미지를 표시합니다.</span>{editing && <button type="button" className="button button-secondary button-small" disabled={submitting} onClick={() => void savePosterOnly()}>포스터만 저장</button>}</div>}{fields.artistName && <a className="underlined-link ticket-search-link span-2" href={ticketSearchUrl} target="_blank" rel="noreferrer">예매처 검색으로 찾기 ↗</a>}{upcoming && <p className="form-hint span-2">공연 뒤에 수정에서 실제 연주 순서를 추가하면 됩니다.</p>}</div></div></section>
 
-      <section className="form-section song-form-section"><div className="form-section-number">04</div><div className="form-section-content"><div className="form-section-title song-title-row"><div><h2>{upcoming ? '예상 선곡표 (선택)' : '연주 순서'}</h2><p>{upcoming ? '공연 전에는 비워두고, 공연 후 실제 순서를 기록해주세요.' : '곡명 입력 후 Enter를 누르면 다음 줄이 생깁니다.'}</p></div><button type="button" className="button button-secondary button-small" onClick={() => insertSong(songs.length - 1, 'main')}>+ 곡 추가</button></div><div className="song-editor">
+      <section className="form-section song-form-section"><div className="form-section-number">04</div><div className="form-section-content"><div className="form-section-title song-title-row"><div><h2>{upcoming ? '예상 선곡표 (선택)' : '연주 순서'}</h2><p>{upcoming ? '공연 전에는 비워두고, 공연 후 실제 순서를 기록해주세요.' : '곡명 입력 후 Enter를 누르면 다음 줄이 생깁니다.'}</p></div><button type="button" className="button button-secondary button-small" onClick={() => insertSong(songs.length - 1, 'main')}>+ 곡 추가</button></div><div className="bulk-song-import"><label><span>곡 목록 붙여넣기</span><textarea value={bulkSongs} onChange={(event) => setBulkSongs(event.target.value)} placeholder={'한 줄에 한 곡씩 붙여넣으세요.\n1. 첫 번째 곡\n2. 두 번째 곡'} /></label><button type="button" className="button button-secondary button-small" disabled={!bulkSongs.trim()} onClick={importSongs}>목록으로 적용</button></div><div className="song-editor">
         {normalizedSongs.map((song, index) => <div className={`song-editor-row ${song.section === 'encore' ? 'encore-row' : ''}`} key={song.key}>
           <span className="editor-number">{String(index + 1).padStart(2, '0')}</span>
           <div className="song-input-stack"><SongAutocomplete inputId={`song-${song.key}`} label={`${index + 1}번째 곡명`} value={song.title} artistName={fields.artistName} onChange={(title) => updateSong(song.key, { title, song_id: null })} onSelect={(item) => updateSong(song.key, { title: item.title, song_id: item.id })} onEnter={() => insertSong(index, song.section)} /><div className="song-flags"><button type="button" className={song.section === 'encore' ? 'active' : ''} onClick={() => updateSong(song.key, { section: song.section === 'encore' ? 'main' : 'encore' })}>{song.section === 'encore' ? 'Encore' : '앙코르로 지정'}</button><label><input type="checkbox" checked={song.is_cover} onChange={(event) => updateSong(song.key, { is_cover: event.target.checked })} />커버곡</label></div>
