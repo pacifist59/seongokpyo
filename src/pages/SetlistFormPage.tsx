@@ -12,7 +12,7 @@ type SongRow = SongInput & { key: string };
 type FormFields = Omit<SetlistDraft, 'songs'>;
 
 const emptyFields: FormFields = {
-  artistName: '', performanceDate: '', concertTitle: '', venueName: '', province: '', district: '', addressDetail: '', roadAddress: '', festivalName: '', tourName: '', ticketUrl: '',
+  artistName: '', performanceDate: '', concertTitle: '', venueName: '', province: '', district: '', addressDetail: '', roadAddress: '', festivalName: '', tourName: '', ticketUrl: '', posterUrl: '', posterSourceUrl: '',
 };
 
 function newSong(position: number, section: SongInput['section'] = 'main'): SongRow {
@@ -42,7 +42,7 @@ export function SetlistFormPage() {
       venueName: overview.venue_name ?? '',
       province: overview.region?.split(' ')[0] ?? '',
       district: overview.region?.split(' ').slice(1).join(' ') ?? '',
-      addressDetail: '', roadAddress: '', festivalName: overview.festival_name ?? '', tourName: overview.tour_name ?? '', ticketUrl: overview.ticket_url ?? '',
+      addressDetail: '', roadAddress: '', festivalName: overview.festival_name ?? '', tourName: overview.tour_name ?? '', ticketUrl: overview.ticket_url ?? '', posterUrl: overview.poster_url ?? '', posterSourceUrl: overview.poster_source_url ?? '',
     });
     setSongs(currentSongs.length ? currentSongs.map((song) => ({
       key: song.id, song_id: song.song_id, title: song.title, position: song.position, section: song.section, is_cover: song.is_cover,
@@ -87,6 +87,8 @@ export function SetlistFormPage() {
         festivalName: isFestival ? fields.festivalName?.trim() || null : null,
         tourName: fields.tourName?.trim() || null,
         ticketUrl: fields.ticketUrl?.trim() || null,
+        posterUrl: fields.posterUrl?.trim() || null,
+        posterSourceUrl: fields.posterSourceUrl?.trim() || null,
         songs: cleanSongs,
         changeReason: changeReason.trim() || null,
       };
@@ -123,7 +125,7 @@ export function SetlistFormPage() {
         <label className="span-2"><span>상세 위치</span><input value={fields.addressDetail ?? ''} onChange={(event) => setField('addressDetail', event.target.value)} placeholder="선택 입력" /></label>
       </div></div></section>
 
-      <section className="form-section"><div className="form-section-number">03</div><div className="form-section-content"><div className="form-section-title"><h2>{upcoming ? '예정 공연' : '예매 정보'}</h2><p>{upcoming ? '아직 선곡표가 없어도 저장할 수 있습니다.' : '공식 예매 링크가 있으면 함께 남겨주세요.'}</p></div><div className="form-grid"><label className="span-2"><span>공식 예매 링크</span><input type="url" value={fields.ticketUrl ?? ''} onChange={(event) => setField('ticketUrl', event.target.value)} placeholder="https://ticket.example.com/..." /></label>{fields.artistName && <a className="underlined-link ticket-search-link span-2" href={ticketSearchUrl} target="_blank" rel="noreferrer">예매처 검색으로 찾기 ↗</a>}{upcoming && <p className="form-hint span-2">공연 뒤에 수정에서 실제 연주 순서를 추가하면 됩니다.</p>}</div></div></section>
+      <section className="form-section"><div className="form-section-number">03</div><div className="form-section-content"><div className="form-section-title"><h2>{upcoming ? '예정 공연' : '예매 · 포스터'}</h2><p>{upcoming ? '아직 선곡표가 없어도 저장할 수 있습니다.' : '공식 예매 링크와 공식 공개 포스터를 함께 남길 수 있습니다.'}</p></div><div className="form-grid"><label className="span-2"><span>공식 예매 링크</span><input type="url" value={fields.ticketUrl ?? ''} onChange={(event) => setField('ticketUrl', event.target.value)} placeholder="https://ticket.example.com/..." /></label><label className="span-2"><span>공식 포스터 이미지 URL</span><input type="url" value={fields.posterUrl ?? ''} onChange={(event) => setField('posterUrl', event.target.value)} placeholder="https://.../poster.jpg" /></label><label className="span-2"><span>포스터 출처 페이지 URL</span><input type="url" value={fields.posterSourceUrl ?? ''} onChange={(event) => setField('posterSourceUrl', event.target.value)} placeholder="https://official.example.com/event" /></label>{fields.posterUrl && <div className="poster-form-preview span-2"><img src={fields.posterUrl} alt="입력한 공연 포스터 미리보기" /><span>외부 공식 URL의 이미지를 표시합니다.</span></div>}{fields.artistName && <a className="underlined-link ticket-search-link span-2" href={ticketSearchUrl} target="_blank" rel="noreferrer">예매처 검색으로 찾기 ↗</a>}{upcoming && <p className="form-hint span-2">공연 뒤에 수정에서 실제 연주 순서를 추가하면 됩니다.</p>}</div></div></section>
 
       <section className="form-section song-form-section"><div className="form-section-number">04</div><div className="form-section-content"><div className="form-section-title song-title-row"><div><h2>{upcoming ? '예상 선곡표 (선택)' : '연주 순서'}</h2><p>{upcoming ? '공연 전에는 비워두고, 공연 후 실제 순서를 기록해주세요.' : '곡명 입력 후 Enter를 누르면 다음 줄이 생깁니다.'}</p></div><button type="button" className="button button-secondary button-small" onClick={() => insertSong(songs.length - 1, 'main')}>+ 곡 추가</button></div><div className="song-editor">
         {normalizedSongs.map((song, index) => <div className={`song-editor-row ${song.section === 'encore' ? 'encore-row' : ''}`} key={song.key}>

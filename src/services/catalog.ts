@@ -176,6 +176,8 @@ export type SetlistDraft = {
   festivalName: string | null;
   tourName: string | null;
   ticketUrl: string | null;
+  posterUrl: string | null;
+  posterSourceUrl: string | null;
   songs: SongInput[];
   changeReason?: string | null;
 };
@@ -212,6 +214,7 @@ export async function createSetlist(draft: SetlistDraft): Promise<string> {
   });
   assertNoError(error);
   if (!data) throw new Error('선곡표 ID를 받지 못했습니다.');
+  await setSetlistPoster(data, draft.posterUrl, draft.posterSourceUrl);
   await recordActivity(data, 'created');
   return data;
 }
@@ -235,6 +238,7 @@ export async function replaceSetlist(id: string, draft: SetlistDraft): Promise<s
   });
   assertNoError(error);
   if (!data) throw new Error('선곡표 ID를 받지 못했습니다.');
+  await setSetlistPoster(data, draft.posterUrl, draft.posterSourceUrl);
   await recordActivity(data, 'edited', draft.changeReason);
   return data;
 }
@@ -345,6 +349,16 @@ export async function setAttendance(setlistId: string, userId: string, attending
     ? await client.from('attendances').upsert({ setlist_id: setlistId, user_id: userId }, { onConflict: 'user_id,setlist_id' })
     : await client.from('attendances').delete().eq('setlist_id', setlistId).eq('user_id', userId);
   assertNoError(result.error);
+}
+
+async function setSetlistPoster(setlistId: string, posterUrl: string | null, posterSourceUrl: string | null): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.rpc('set_setlist_poster', {
+    p_setlist_id: setlistId,
+    p_poster_url: posterUrl,
+    p_poster_source_url: posterSourceUrl,
+  });
+  assertNoError(error);
 }
 
 export type CorrectionInput = Pick<SetlistCorrection, 'issue_type' | 'proposed_value' | 'reason'> & { evidence_url?: string | null };

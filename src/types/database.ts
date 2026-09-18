@@ -47,6 +47,8 @@ export type SetlistOverview = {
   created_at: string;
   updated_at: string;
   ticket_url: string | null;
+  poster_url: string | null;
+  poster_source_url: string | null;
   is_upcoming: boolean;
 };
 
@@ -251,6 +253,10 @@ export interface Database {
       delete_setlist: {
         Args: { p_setlist_id: string };
         Returns: boolean;
+      };
+      set_setlist_poster: {
+        Args: { p_setlist_id: string; p_poster_url: string | null; p_poster_source_url: string | null };
+        Returns: string;
       };
     };
     Enums: Record<string, never>;

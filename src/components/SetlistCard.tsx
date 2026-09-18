@@ -4,7 +4,7 @@ import type { SetlistOverview } from '../types/database';
 
 export function SetlistCard({ item, compact = false }: { item: SetlistOverview; compact?: boolean }) {
   return (
-    <Link to={`/setlist/${item.id}`} className={`setlist-card ${compact ? 'card-compact' : ''}`}>
+    <Link to={`/setlist/${item.id}`} className={`setlist-card ${compact ? 'card-compact' : ''} ${item.poster_url ? 'has-poster' : ''}`}>
       <div className="card-date" aria-label={`공연 날짜 ${item.performance_date}`}>
         <span>{formatCompactDate(item.performance_date).slice(5)}</span>
         <small>{item.performance_date.slice(0, 4)}</small>
@@ -21,6 +21,7 @@ export function SetlistCard({ item, compact = false }: { item: SetlistOverview; 
           <small>{item.region || '지역 미정'}</small>
         </div>
       </div>
+      {item.poster_url && <img className="card-poster" src={item.poster_url} alt={`${item.artist_name} 공연 포스터`} loading="lazy" />}
       <span className="card-arrow" aria-hidden="true">↗</span>
     </Link>
   );
